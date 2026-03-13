@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Portefeuille boursier - Finnhub</title>
+  <title>Portefeuille boursier CAD - 11 tickers</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -23,7 +23,7 @@
       margin-bottom: 20px;
     }
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       background-color: #020617;
       border-radius: 10px;
@@ -99,15 +99,24 @@
     }
     .footer-row {
       background-color: #020617;
-      font-weight: 600;
+      font-weight: 700;
     }
     .footer-row td {
       border-top: 2px solid #4b5563;
+      font-size: 1rem;
     }
     .error {
       color: #f97316;
       margin-top: 8px;
       font-size: 0.8rem;
+    }
+    .edit-note {
+      background-color: #1e293b;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      margin-bottom: 10px;
+      border-left: 4px solid #2563eb;
     }
     @media (max-width: 768px) {
       table { font-size: 0.8rem; }
@@ -116,9 +125,9 @@
   </style>
 </head>
 <body>
-  <h1>Portefeuille boursier</h1>
+  <h1>Portefeuille boursier CAD</h1>
   <div class="subtitle">
-    Suivi en temps réel via Finnhub.io
+    US stocks convertis USD→CAD + RY.TO natif CAD | Finnhub.io
   </div>
 
   <div class="container">
@@ -133,6 +142,9 @@
         <div class="status" id="statusText">Clé non enregistrée.</div>
       </div>
     </div>
+    <div class="edit-note">
+      📝 <strong>Modifier :</strong> Change <code>quantite</code> et <code>prixAchat</code> dans <code>portfolio</code> (lignes 106-117).
+    </div>
     <div class="error" id="errorText"></div>
 
     <table>
@@ -141,9 +153,10 @@
           <th>Symbole</th>
           <th>Quantité</th>
           <th>Prix achat</th>
-          <th>Prix actuel</th>
-          <th>Valeur actuelle</th>
-          <th>Gain/Perte</th>
+          <th>Capital investi CAD</th>
+          <th>Prix actuel CAD</th>
+          <th>Valeur actuelle CAD</th>
+          <th>Gain/Perte CAD</th>
           <th>Gain/Perte %</th>
         </tr>
       </thead>
@@ -152,13 +165,24 @@
   </div>
 
   <script>
-    // === PORTFEUILLE À PERSONNALISER ======================
+    // === TES 11 POSITIONS (CAD) ================================
     const portfolio = [
-      { ticker: "AAPL", quantite: 10, prixAchat: 150 },
-      { ticker: "MSFT", quantite: 5, prixAchat: 300 },
-      { ticker: "NVDA", quantite: 3, prixAchat: 400 }
+      { ticker: "NVDA",  quantite: 3,  prixAchat: 400, isCAD: false },
+      { ticker: "AAPL",  quantite: 10, prixAchat: 150, isCAD: false },
+      { ticker: "GOOG",  quantite: 5,  prixAchat: 140, isCAD: false },
+      { ticker: "MSFT",  quantite: 4,  prixAchat: 300, isCAD: false },
+      { ticker: "AMZN",  quantite: 2,  prixAchat: 130, isCAD: false },
+      { ticker: "AVGO",  quantite: 1,  prixAchat: 800, isCAD: false },
+      { ticker: "META",  quantite: 3,  prixAchat: 250, isCAD: false },
+      { ticker: "TSLA",  quantite: 6,  prixAchat: 200, isCAD: false },
+      { ticker: "WMT",   quantite: 8,  prixAchat: 60,  isCAD: false },
+      { ticker: "LLY",   quantite: 2,  prixAchat: 500, isCAD: false },
+      { ticker: "RY.TO", quantite: 20, prixAchat: 120, isCAD: true  } // CAD natif
     ];
-    // =====================================================
+    // ===========================================================
+
+    // Taux USD/CAD actuel (≈1.37) - met à jour manuellement [web:61]
+    const USD_TO_CAD = 1.37;
 
     let FINNHUB_API_KEY = "";
 
@@ -169,12 +193,12 @@
     const portfolioBody = document.getElementById("portfolioBody");
     const refreshBtn = document.getElementById("refreshBtn");
 
-    // Charger la clé éventuellement stockée dans localStorage
+    // Charger clé localStorage
     const savedKey = localStorage.getItem("FINNHUB_API_KEY");
     if (savedKey) {
       FINNHUB_API_KEY = savedKey;
-      keyInput.value = "********"; // on ne l’affiche pas en clair
-      statusText.textContent = "Clé Finnhub chargée. Prêt à rafraîchir.";
+      keyInput.value = "********";
+      statusText.textContent = "Clé chargée. Prêt !";
     }
 
     saveKeyBtn.addEventListener("click", () => {
@@ -186,45 +210,43 @@
       FINNHUB_API_KEY = val;
       localStorage.setItem("FINNHUB_API_KEY", val);
       keyInput.value = "********";
-      statusText.textContent = "Clé Finnhub enregistrée (localStorage).";
+      statusText.textContent = "Clé Finnhub enregistrée.";
     });
 
     async function fetchQuote(symbol) {
-      if (!FINNHUB_API_KEY) {
-        throw new Error("Clé Finnhub manquante.");
-      }
+      if (!FINNHUB_API_KEY || !symbol) return 0;
       const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
-      const resp = await fetch(url);
-      if (!resp.ok) {
-        throw new Error("Erreur API Finnhub: " + resp.status);
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) return 0;
+        const data = await resp.json();
+        return data.c || 0;
+      } catch {
+        return 0;
       }
-      const data = await resp.json();
-      // data.c = current price, data.o = open, etc. [web:40]
-      return data.c || 0;
     }
 
     async function fetchAllPrices() {
       if (!FINNHUB_API_KEY) {
-        errorText.textContent = "Tu dois d’abord enregistrer ta clé Finnhub.";
-        statusText.textContent = "Clé manquante.";
+        errorText.textContent = "Enregistre ta clé Finnhub.";
         return;
       }
       errorText.textContent = "";
-      statusText.textContent = "Chargement des données…";
+      statusText.textContent = "Chargement… (USD→CAD 1.37)";
       refreshBtn.disabled = true;
 
       try {
         const prices = {};
         for (const pos of portfolio) {
-          prices[pos.ticker] = await fetchQuote(pos.ticker);
+          if (pos.ticker) {
+            prices[pos.ticker] = await fetchQuote(pos.ticker);
+          }
         }
         renderTable(prices);
         const now = new Date();
-        statusText.textContent = "Dernière mise à jour : " + now.toLocaleTimeString();
+        statusText.textContent = "Mis à jour : " + now.toLocaleTimeString();
       } catch (err) {
-        console.error(err);
         errorText.textContent = "Erreur: " + err.message;
-        statusText.textContent = "Erreur de chargement.";
       } finally {
         refreshBtn.disabled = false;
       }
@@ -232,18 +254,25 @@
 
     function renderTable(priceMap) {
       portfolioBody.innerHTML = "";
-      let totalValeur = 0;
-      let totalInvesti = 0;
+      let totalQuantite = 0;
+      let totalCapitalCAD = 0;
+      let totalValeurCAD = 0;
+      let totalGainCAD = 0;
+      let totalInvestiCAD = 0;
 
       portfolio.forEach(pos => {
-        const prixActuel = priceMap[pos.ticker] || 0;
-        const investi = pos.quantite * pos.prixAchat;
-        const valeurActuelle = pos.quantite * prixActuel;
-        const gain = valeurActuelle - investi;
-        const gainPct = investi !== 0 ? (gain / investi) * 100 : 0;
+        const prixUSD = priceMap[pos.ticker] || 0;
+        const prixCAD = pos.isCAD ? prixUSD : prixUSD * USD_TO_CAD;
+        const capitalInvestiCAD = pos.quantite * pos.prixAchat;
+        const valeurActuelleCAD = pos.quantite * prixCAD;
+        const gainCAD = valeurActuelleCAD - capitalInvestiCAD;
+        const gainPct = capitalInvestiCAD !== 0 ? (gainCAD / capitalInvestiCAD) * 100 : 0;
 
-        totalValeur += valeurActuelle;
-        totalInvesti += investi;
+        totalQuantite += pos.quantite;
+        totalCapitalCAD += capitalInvestiCAD;
+        totalValeurCAD += valeurActuelleCAD;
+        totalGainCAD += gainCAD;
+        if (capitalInvestiCAD > 0) totalInvestiCAD += capitalInvestiCAD;
 
         const tr = document.createElement("tr");
 
@@ -259,57 +288,69 @@
         tdPA.textContent = pos.prixAchat.toFixed(2);
         tr.appendChild(tdPA);
 
+        const tdCapital = document.createElement("td");
+        tdCapital.textContent = capitalInvestiCAD.toFixed(2);
+        tr.appendChild(tdCapital);
+
         const tdPrix = document.createElement("td");
-        tdPrix.textContent = prixActuel ? prixActuel.toFixed(2) : "N/D";
+        tdPrix.textContent = prixCAD ? prixCAD.toFixed(2) : "N/D";
         tr.appendChild(tdPrix);
 
         const tdVal = document.createElement("td");
-        tdVal.textContent = valeurActuelle.toFixed(2);
+        tdVal.textContent = valeurActuelleCAD.toFixed(2);
         tr.appendChild(tdVal);
 
         const tdGain = document.createElement("td");
-        tdGain.textContent = gain.toFixed(2);
-        tdGain.className = gain >= 0 ? "gain" : "loss";
+        tdGain.textContent = gainCAD.toFixed(2);
+        tdGain.className = gainCAD >= 0 ? "gain" : "loss";
         tr.appendChild(tdGain);
 
         const tdGainPct = document.createElement("td");
-        tdGainPct.textContent = gainPct.toFixed(2) + " %";
-        tdGainPct.className = gain >= 0 ? "gain" : "loss";
+        tdGainPct.textContent = gainPct.toFixed(2) + "%";
+        tdGainPct.className = gainPct >= 0 ? "gain" : "loss";
         tr.appendChild(tdGainPct);
 
         portfolioBody.appendChild(tr);
       });
 
+      // Totaux
       const trTotal = document.createElement("tr");
       trTotal.className = "footer-row";
 
       const tdLabel = document.createElement("td");
-      tdLabel.textContent = "TOTAL";
+      tdLabel.textContent = "TOTAL CAD";
       trTotal.appendChild(tdLabel);
 
-      const tdEmpty1 = document.createElement("td");
-      tdEmpty1.colSpan = 2;
-      trTotal.appendChild(tdEmpty1);
+      const tdTotalQ = document.createElement("td");
+      tdTotalQ.textContent = totalQuantite.toFixed(0);
+      trTotal.appendChild(tdTotalQ);
 
-      const tdEmpty2 = document.createElement("td");
-      trTotal.appendChild(tdEmpty2);
+      const tdTotalPA = document.createElement("td");
+      tdTotalPA.textContent = "-";
+      trTotal.appendChild(tdTotalPA);
+
+      const tdTotalCapital = document.createElement("td");
+      tdTotalCapital.textContent = totalCapitalCAD.toFixed(2);
+      trTotal.appendChild(tdTotalCapital);
+
+      const tdTotalPrix = document.createElement("td");
+      tdTotalPrix.textContent = "-";
+      trTotal.appendChild(tdTotalPrix);
 
       const tdTotalVal = document.createElement("td");
-      tdTotalVal.textContent = totalValeur.toFixed(2);
+      tdTotalVal.textContent = totalValeurCAD.toFixed(2);
       trTotal.appendChild(tdTotalVal);
 
-      const totalGain = totalValeur - totalInvesti;
-      const totalGainPct = totalInvesti !== 0 ? (totalGain / totalInvesti) * 100 : 0;
-
       const tdTotalGain = document.createElement("td");
-      tdTotalGain.textContent = totalGain.toFixed(2);
-      tdTotalGain.className = totalGain >= 0 ? "gain" : "loss";
+      tdTotalGain.textContent = totalGainCAD.toFixed(2);
+      tdTotalGain.className = totalGainCAD >= 0 ? "gain" : "loss";
       trTotal.appendChild(tdTotalGain);
 
-      const tdTotalGainPct = document.createElement("td");
-      tdTotalGainPct.textContent = totalGainPct.toFixed(2) + " %";
-      tdTotalGainPct.className = totalGain >= 0 ? "gain" : "loss";
-      trTotal.appendChild(tdTotalGainPct);
+      const tdTotalPct = document.createElement("td");
+      const totalGainPct = totalInvestiCAD > 0 ? (totalGainCAD / totalInvestiCAD) * 100 : 0;
+      tdTotalPct.textContent = totalGainPct.toFixed(2) + "%";
+      tdTotalPct.className = totalGainPct >= 0 ? "gain" : "loss";
+      trTotal.appendChild(tdTotalPct);
 
       portfolioBody.appendChild(trTotal);
     }
@@ -319,4 +360,5 @@
   </script>
 </body>
 </html>
+
 

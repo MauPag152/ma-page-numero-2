@@ -1,164 +1,322 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard Boursier Pro</title>
-    <!-- Chargement de Chart.js pour les graphiques -->
-    <script src="https://cdn.jsdelivr.net"></script>
-    <style>
-        :root { --primary: #1a2a3a; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        
-        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 250px; }
-        
-        .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        @media (max-width: 850px) { .main-layout { grid-template-columns: 1fr; } }
-
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #7f8c8d; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        
-        .positive { color: var(--success); }
-        .negative { color: var(--danger); }
-        canvas { max-width: 100%; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Portefeuille boursier - Finnhub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background-color: #020617;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid #1f2937;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .api-key-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .api-key-box input {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #4b5563;
+      background-color: #020617;
+      color: #e5e7eb;
+      min-width: 220px;
+    }
+    button {
+      background-color: #2563eb;
+      color: #f9fafb;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    .status {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    thead {
+      background: linear-gradient(to right, #111827, #1f2937);
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: right;
+      border-bottom: 1px solid #1f2937;
+    }
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+    tr:hover {
+      background-color: #020617;
+    }
+    .gain {
+      color: #22c55e;
+      font-weight: 600;
+    }
+    .loss {
+      color: #ef4444;
+      font-weight: 600;
+    }
+    .footer-row {
+      background-color: #020617;
+      font-weight: 600;
+    }
+    .footer-row td {
+      border-top: 2px solid #4b5563;
+    }
+    .error {
+      color: #f97316;
+      margin-top: 8px;
+      font-size: 0.8rem;
+    }
+    @media (max-width: 768px) {
+      table { font-size: 0.8rem; }
+      th, td { padding: 6px 4px; }
+    }
+  </style>
 </head>
 <body>
+  <h1>Portefeuille boursier</h1>
+  <div class="subtitle">
+    Suivi en temps réel via Finnhub.io
+  </div>
 
-<div class="container">
-    <div class="card header-flex">
-        <h1>Analyse de Portefeuille</h1>
-        <div>
-            <input type="password" id="apiKey" placeholder="Clé API Finnhub">
-            <button class="btn btn-primary" onclick="saveKey()">Sauvegarder Clé</button>
-        </div>
+  <div class="container">
+    <div class="controls">
+      <div class="api-key-box">
+        <label for="finnhubKey" style="font-size:0.8rem;">Clé Finnhub :</label>
+        <input id="finnhubKey" type="password" placeholder="Colle ta clé ici" />
+        <button id="saveKeyBtn">Enregistrer la clé</button>
+      </div>
+      <div>
+        <button id="refreshBtn">Rafraîchir maintenant</button>
+        <div class="status" id="statusText">Clé non enregistrée.</div>
+      </div>
     </div>
+    <div class="error" id="errorText"></div>
 
-    <div class="main-layout">
-        <!-- Tableau des actifs -->
-        <div class="card">
-            <div class="header-flex" style="margin-bottom:15px;">
-                <h3>Mes Positions</h3>
-                <button class="btn btn-success" onclick="updateAll()">🔄 Actualiser les cours</button>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Symbole</th>
-                        <th>Quantité</th>
-                        <th>Prix Actuel</th>
-                        <th>Valeur Totale</th>
-                        <th>Profit/Perte</th>
-                    </tr>
-                </thead>
-                <tbody id="stockTable">
-                    <!-- Généré par JS -->
-                </tbody>
-            </table>
-        </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Symbole</th>
+          <th>Quantité</th>
+          <th>Prix achat</th>
+          <th>Prix actuel</th>
+          <th>Valeur actuelle</th>
+          <th>Gain/Perte</th>
+          <th>Gain/Perte %</th>
+        </tr>
+      </thead>
+      <tbody id="portfolioBody"></tbody>
+    </table>
+  </div>
 
-        <!-- Graphique -->
-        <div class="card">
-            <h3>Répartition de l'Actif</h3>
-            <canvas id="portfolioChart"></canvas>
-            <div style="margin-top: 20px; text-align: center;">
-                <h4 id="grandTotal">Total: 0,00 $</h4>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // 1. DÉFINISSEZ VOS PLACEMENTS ICI
-    const myPortfolio = [
-        { symbol: 'AAPL', qty: 15, buyPrice: 170.00 },
-        { symbol: 'MSFT', qty: 10, buyPrice: 320.00 },
-        { symbol: 'GOOGL', qty: 5, buyPrice: 140.00 },
-        { symbol: 'TSLA', qty: 8, buyPrice: 190.00 }
+  <script>
+    // === PORTFEUILLE À PERSONNALISER ======================
+    const portfolio = [
+      { ticker: "AAPL", quantite: 10, prixAchat: 150 },
+      { ticker: "MSFT", quantite: 5, prixAchat: 300 },
+      { ticker: "NVDA", quantite: 3, prixAchat: 400 }
     ];
+    // =====================================================
 
-    let chartInstance = null;
+    let FINNHUB_API_KEY = "";
 
-    function saveKey() {
-        localStorage.setItem('finnhub_token', document.getElementById('apiKey').value);
-        alert("Clé API configurée !");
+    const keyInput   = document.getElementById("finnhubKey");
+    const saveKeyBtn = document.getElementById("saveKeyBtn");
+    const statusText = document.getElementById("statusText");
+    const errorText  = document.getElementById("errorText");
+    const portfolioBody = document.getElementById("portfolioBody");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    // Charger la clé éventuellement stockée dans localStorage
+    const savedKey = localStorage.getItem("FINNHUB_API_KEY");
+    if (savedKey) {
+      FINNHUB_API_KEY = savedKey;
+      keyInput.value = "********"; // on ne l’affiche pas en clair
+      statusText.textContent = "Clé Finnhub chargée. Prêt à rafraîchir.";
     }
 
-    async function getPrice(symbol) {
-        const token = localStorage.getItem('finnhub_token') || document.getElementById('apiKey').value;
-        if (!token) return null;
-        try {
-            const res = await fetch(`https://finnhub.io{symbol}&token=${token}`);
-            const data = await res.json();
-            return data.c; // 'c' = Current Price
-        } catch (e) { return null; }
+    saveKeyBtn.addEventListener("click", () => {
+      const val = keyInput.value.trim();
+      if (!val) {
+        alert("Entre une clé Finnhub valide.");
+        return;
+      }
+      FINNHUB_API_KEY = val;
+      localStorage.setItem("FINNHUB_API_KEY", val);
+      keyInput.value = "********";
+      statusText.textContent = "Clé Finnhub enregistrée (localStorage).";
+    });
+
+    async function fetchQuote(symbol) {
+      if (!FINNHUB_API_KEY) {
+        throw new Error("Clé Finnhub manquante.");
+      }
+      const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error("Erreur API Finnhub: " + resp.status);
+      }
+      const data = await resp.json();
+      // data.c = current price, data.o = open, etc. [web:40]
+      return data.c || 0;
     }
 
-    async function updateAll() {
-        const tbody = document.getElementById('stockTable');
-        let totalPortfolioValue = 0;
-        let labels = [];
-        let values = [];
-        
-        tbody.innerHTML = '<tr><td colspan="5">Récupération des données...</td></tr>';
-        let rowsHtml = '';
+    async function fetchAllPrices() {
+      if (!FINNHUB_API_KEY) {
+        errorText.textContent = "Tu dois d’abord enregistrer ta clé Finnhub.";
+        statusText.textContent = "Clé manquante.";
+        return;
+      }
+      errorText.textContent = "";
+      statusText.textContent = "Chargement des données…";
+      refreshBtn.disabled = true;
 
-        for (let stock of myPortfolio) {
-            const currentPrice = await getPrice(stock.symbol);
-            const totalValue = currentPrice * stock.qty;
-            const profit = (currentPrice - stock.buyPrice) * stock.qty;
-            
-            totalPortfolioValue += totalValue;
-            labels.push(stock.symbol);
-            values.push(totalValue.toFixed(2));
-
-            rowsHtml += `
-                <tr>
-                    <td><strong>${stock.symbol}</strong></td>
-                    <td>${stock.qty}</td>
-                    <td>${currentPrice ? currentPrice.toFixed(2) + ' $' : 'N/A'}</td>
-                    <td>${totalValue.toLocaleString()} $</td>
-                    <td class="${profit >= 0 ? 'positive' : 'negative'}">
-                        ${profit >= 0 ? '+' : ''}${profit.toFixed(2)} $
-                    </td>
-                </tr>`;
+      try {
+        const prices = {};
+        for (const pos of portfolio) {
+          prices[pos.ticker] = await fetchQuote(pos.ticker);
         }
-
-        tbody.innerHTML = rowsHtml;
-        document.getElementById('grandTotal').innerText = `Valeur Totale : ${totalPortfolioValue.toLocaleString()} $`;
-        updateChart(labels, values);
+        renderTable(prices);
+        const now = new Date();
+        statusText.textContent = "Dernière mise à jour : " + now.toLocaleTimeString();
+      } catch (err) {
+        console.error(err);
+        errorText.textContent = "Erreur: " + err.message;
+        statusText.textContent = "Erreur de chargement.";
+      } finally {
+        refreshBtn.disabled = false;
+      }
     }
 
-    function updateChart(labels, data) {
-        const ctx = document.getElementById('portfolioChart').getContext('2d');
-        if (chartInstance) chartInstance.destroy();
-        
-        chartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
+    function renderTable(priceMap) {
+      portfolioBody.innerHTML = "";
+      let totalValeur = 0;
+      let totalInvesti = 0;
+
+      portfolio.forEach(pos => {
+        const prixActuel = priceMap[pos.ticker] || 0;
+        const investi = pos.quantite * pos.prixAchat;
+        const valeurActuelle = pos.quantite * prixActuel;
+        const gain = valeurActuelle - investi;
+        const gainPct = investi !== 0 ? (gain / investi) * 100 : 0;
+
+        totalValeur += valeurActuelle;
+        totalInvesti += investi;
+
+        const tr = document.createElement("tr");
+
+        const tdSym = document.createElement("td");
+        tdSym.textContent = pos.ticker;
+        tr.appendChild(tdSym);
+
+        const tdQ = document.createElement("td");
+        tdQ.textContent = pos.quantite;
+        tr.appendChild(tdQ);
+
+        const tdPA = document.createElement("td");
+        tdPA.textContent = pos.prixAchat.toFixed(2);
+        tr.appendChild(tdPA);
+
+        const tdPrix = document.createElement("td");
+        tdPrix.textContent = prixActuel ? prixActuel.toFixed(2) : "N/D";
+        tr.appendChild(tdPrix);
+
+        const tdVal = document.createElement("td");
+        tdVal.textContent = valeurActuelle.toFixed(2);
+        tr.appendChild(tdVal);
+
+        const tdGain = document.createElement("td");
+        tdGain.textContent = gain.toFixed(2);
+        tdGain.className = gain >= 0 ? "gain" : "loss";
+        tr.appendChild(tdGain);
+
+        const tdGainPct = document.createElement("td");
+        tdGainPct.textContent = gainPct.toFixed(2) + " %";
+        tdGainPct.className = gain >= 0 ? "gain" : "loss";
+        tr.appendChild(tdGainPct);
+
+        portfolioBody.appendChild(tr);
+      });
+
+      const trTotal = document.createElement("tr");
+      trTotal.className = "footer-row";
+
+      const tdLabel = document.createElement("td");
+      tdLabel.textContent = "TOTAL";
+      trTotal.appendChild(tdLabel);
+
+      const tdEmpty1 = document.createElement("td");
+      tdEmpty1.colSpan = 2;
+      trTotal.appendChild(tdEmpty1);
+
+      const tdEmpty2 = document.createElement("td");
+      trTotal.appendChild(tdEmpty2);
+
+      const tdTotalVal = document.createElement("td");
+      tdTotalVal.textContent = totalValeur.toFixed(2);
+      trTotal.appendChild(tdTotalVal);
+
+      const totalGain = totalValeur - totalInvesti;
+      const totalGainPct = totalInvesti !== 0 ? (totalGain / totalInvesti) * 100 : 0;
+
+      const tdTotalGain = document.createElement("td");
+      tdTotalGain.textContent = totalGain.toFixed(2);
+      tdTotalGain.className = totalGain >= 0 ? "gain" : "loss";
+      trTotal.appendChild(tdTotalGain);
+
+      const tdTotalGainPct = document.createElement("td");
+      tdTotalGainPct.textContent = totalGainPct.toFixed(2) + " %";
+      tdTotalGainPct.className = totalGain >= 0 ? "gain" : "loss";
+      trTotal.appendChild(tdTotalGainPct);
+
+      portfolioBody.appendChild(trTotal);
     }
 
-    window.onload = () => {
-        const savedKey = localStorage.getItem('finnhub_token');
-        if (savedKey) document.getElementById('apiKey').value = savedKey;
-        updateAll();
-    };
-</script>
-
+    refreshBtn.addEventListener("click", fetchAllPrices);
+    setInterval(fetchAllPrices, 60000);
+  </script>
 </body>
 </html>
+

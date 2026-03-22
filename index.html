@@ -1,363 +1,820 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Portefeuille boursier CAD - 11 tickers</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0f172a;
-      color: #e5e7eb;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #9ca3af;
-      margin-bottom: 20px;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background-color: #020617;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border: 1px solid #1f2937;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .api-key-box {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .api-key-box input {
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #4b5563;
-      background-color: #020617;
-      color: #e5e7eb;
-      min-width: 220px;
-    }
-    button {
-      background-color: #2563eb;
-      color: #f9fafb;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    button:hover {
-      background-color: #1d4ed8;
-    }
-    .status {
-      font-size: 0.8rem;
-      color: #9ca3af;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-    thead {
-      background: linear-gradient(to right, #111827, #1f2937);
-    }
-    th, td {
-      padding: 8px 10px;
-      text-align: right;
-      border-bottom: 1px solid #1f2937;
-    }
-    th:first-child, td:first-child {
-      text-align: left;
-    }
-    tr:hover {
-      background-color: #020617;
-    }
-    .gain {
-      color: #22c55e;
-      font-weight: 600;
-    }
-    .loss {
-      color: #ef4444;
-      font-weight: 600;
-    }
-    .footer-row {
-      background-color: #020617;
-      font-weight: 700;
-    }
-    .footer-row td {
-      border-top: 2px solid #4b5563;
-      font-size: 1rem;
-    }
-    .error {
-      color: #f97316;
-      margin-top: 8px;
-      font-size: 0.8rem;
-    }
-    .edit-note {
-      background-color: #1e293b;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      margin-bottom: 10px;
-      border-left: 4px solid #2563eb;
-    }
-    @media (max-width: 768px) {
-      table { font-size: 0.8rem; }
-      th, td { padding: 6px 4px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse Fondamentale — Actions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg: #0a0c0f;
+--surface: #111418;
+--surface2: #171b21;
+--border: #222830;
+--accent: #c8a96e;
+--accent2: #7eb8c9;
+--green: #4caf82;
+--orange: #e8943a;
+--red: #d45f5f;
+--text: #e8e4dc;
+--text-muted: #7a8494;
+--text-dim: #4a5260;
+}
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘IBM Plex Sans’, sans-serif;
+font-weight: 300;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Subtle grid background */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(var(–border) 1px, transparent 1px),
+linear-gradient(90deg, var(–border) 1px, transparent 1px);
+background-size: 60px 60px;
+opacity: 0.3;
+pointer-events: none;
+z-index: 0;
+}
+
+.container {
+max-width: 980px;
+margin: 0 auto;
+padding: 0 24px;
+position: relative;
+z-index: 1;
+}
+
+/* ── HOME BUTTON ── */
+.home-btn {
+position: fixed;
+top: 20px;
+left: 20px;
+z-index: 100;
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 9px 16px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+color: var(–text-muted);
+text-decoration: none;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+transition: all 0.2s;
+}
+.home-btn:hover {
+border-color: var(–accent);
+color: var(–accent);
+background: rgba(200, 169, 110, 0.06);
+}
+.home-btn svg { width: 13px; height: 13px; }
+
+/* ── HEADER ── */
+header {
+padding: 80px 0 40px;
+border-bottom: 1px solid var(–border);
+margin-bottom: 48px;
+}
+
+.header-tag {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(–accent);
+margin-bottom: 16px;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.header-tag::after {
+content: ‘’;
+display: block;
+height: 1px;
+width: 60px;
+background: var(–accent);
+opacity: 0.5;
+}
+
+h1 {
+font-family: ‘Playfair Display’, serif;
+font-size: clamp(28px, 4vw, 48px);
+font-weight: 900;
+line-height: 1.1;
+color: var(–text);
+letter-spacing: -0.01em;
+}
+h1 span { color: var(–accent); }
+
+.subtitle {
+margin-top: 12px;
+font-size: 13px;
+color: var(–text-muted);
+font-family: ‘IBM Plex Mono’, monospace;
+letter-spacing: 0.04em;
+}
+
+/* ── SEARCH PANEL ── */
+.search-panel {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 10px;
+padding: 28px 32px;
+margin-bottom: 36px;
+}
+
+.panel-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 14px;
+}
+
+.search-row {
+display: flex;
+gap: 12px;
+align-items: flex-start;
+flex-wrap: wrap;
+}
+
+.input-group {
+flex: 1;
+min-width: 220px;
+}
+
+.input-group label {
+display: block;
+font-size: 11px;
+color: var(–text-muted);
+font-family: ‘IBM Plex Mono’, monospace;
+letter-spacing: 0.06em;
+margin-bottom: 8px;
+}
+
+input[type=“text”] {
+width: 100%;
+background: var(–bg);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 11px 14px;
+color: var(–text);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+letter-spacing: 0.04em;
+outline: none;
+transition: border-color 0.2s;
+}
+input[type=“text”]:focus { border-color: var(–accent); }
+input[type=“text”]::placeholder { color: var(–text-dim); }
+
+.btn-analyse {
+padding: 11px 28px;
+background: var(–accent);
+border: none;
+border-radius: 6px;
+color: #0a0c0f;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+font-weight: 500;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+cursor: pointer;
+transition: all 0.2s;
+align-self: flex-end;
+white-space: nowrap;
+}
+.btn-analyse:hover { background: #dfc085; transform: translateY(-1px); }
+.btn-analyse:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Examples */
+.examples {
+margin-top: 14px;
+display: flex;
+align-items: center;
+gap: 8px;
+flex-wrap: wrap;
+}
+.examples span {
+font-size: 10px;
+color: var(–text-dim);
+font-family: ‘IBM Plex Mono’, monospace;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+}
+.example-chip {
+padding: 4px 10px;
+border: 1px solid var(–border);
+border-radius: 20px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–text-muted);
+cursor: pointer;
+transition: all 0.15s;
+background: none;
+}
+.example-chip:hover { border-color: var(–accent2); color: var(–accent2); }
+
+/* ── STATUS ── */
+.status-bar {
+display: none;
+align-items: center;
+gap: 10px;
+padding: 12px 16px;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 6px;
+margin-bottom: 28px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+color: var(–text-muted);
+}
+.status-bar.active { display: flex; }
+.spinner {
+width: 14px; height: 14px;
+border: 2px solid var(–border);
+border-top-color: var(–accent);
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── OUTPUT ── */
+#output {
+display: none;
+animation: fadeIn 0.4s ease;
+}
+#output.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.output-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 24px;
+padding-bottom: 16px;
+border-bottom: 1px solid var(–border);
+flex-wrap: wrap;
+gap: 12px;
+}
+
+.ticker-badge {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.1em;
+color: var(–accent2);
+background: rgba(126, 184, 201, 0.08);
+border: 1px solid rgba(126, 184, 201, 0.2);
+border-radius: 4px;
+padding: 4px 10px;
+}
+
+.btn-copy {
+padding: 7px 16px;
+background: transparent;
+border: 1px solid var(–border);
+border-radius: 5px;
+color: var(–text-muted);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+cursor: pointer;
+transition: all 0.15s;
+}
+.btn-copy:hover { border-color: var(–accent); color: var(–accent); }
+
+.analysis-content {
+line-height: 1.75;
+font-size: 14px;
+color: var(–text);
+}
+
+/* Markdown rendering */
+.analysis-content h2 {
+font-family: ‘Playfair Display’, serif;
+font-size: 20px;
+color: var(–accent);
+margin: 40px 0 16px;
+padding-bottom: 8px;
+border-bottom: 1px solid var(–border);
+font-weight: 700;
+}
+.analysis-content h3 {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(–accent2);
+margin: 28px 0 12px;
+}
+.analysis-content p { margin-bottom: 14px; }
+.analysis-content strong { color: var(–text); font-weight: 500; }
+.analysis-content em { color: var(–text-muted); font-style: normal; }
+
+/* Tables */
+.analysis-content table {
+width: 100%;
+border-collapse: collapse;
+margin: 20px 0;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 11.5px;
+overflow-x: auto;
+display: block;
+}
+.analysis-content th {
+background: var(–surface2);
+color: var(–text-muted);
+font-size: 10px;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+padding: 10px 12px;
+text-align: left;
+border: 1px solid var(–border);
+white-space: nowrap;
+}
+.analysis-content td {
+padding: 9px 12px;
+border: 1px solid var(–border);
+vertical-align: top;
+white-space: nowrap;
+}
+.analysis-content tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.analysis-content tr:hover td { background: rgba(200,169,110,0.04); }
+
+/* Color codes in text */
+.vert { color: var(–green); font-weight: 500; }
+.orange { color: var(–orange); font-weight: 500; }
+.rouge { color: var(–red); font-weight: 500; }
+
+/* Lists */
+.analysis-content ul, .analysis-content ol {
+padding-left: 20px;
+margin-bottom: 14px;
+}
+.analysis-content li { margin-bottom: 6px; }
+.analysis-content li::marker { color: var(–accent); }
+
+/* Blockquote */
+.analysis-content blockquote {
+border-left: 3px solid var(–accent);
+margin: 16px 0;
+padding: 10px 18px;
+background: rgba(200,169,110,0.05);
+font-style: italic;
+color: var(–text-muted);
+border-radius: 0 4px 4px 0;
+}
+
+/* Error */
+.error-box {
+padding: 16px 20px;
+background: rgba(212, 95, 95, 0.08);
+border: 1px solid rgba(212, 95, 95, 0.3);
+border-radius: 6px;
+color: var(–red);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px;
+}
+
+/* Footer */
+footer {
+margin-top: 60px;
+padding: 24px 0;
+border-top: 1px solid var(–border);
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 12px;
+}
+footer span {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px;
+color: var(–text-dim);
+letter-spacing: 0.08em;
+}
+
+@media (max-width: 600px) {
+.search-row { flex-direction: column; }
+.btn-analyse { width: 100%; text-align: center; }
+header { padding-top: 70px; }
+}
+</style>
+
 </head>
 <body>
-  <h1>Portefeuille boursier CAD</h1>
-  <div class="subtitle">
-    US stocks convertis USD→CAD + RY.TO natif CAD | Finnhub.io
-  </div>
 
-  <div class="container">
-    <div class="controls">
-      <div class="api-key-box">
-        <label for="finnhubKey" style="font-size:0.8rem;">Clé Finnhub :</label>
-        <input id="finnhubKey" type="password" placeholder="Colle ta clé ici" />
-        <button id="saveKeyBtn">Enregistrer la clé</button>
-      </div>
-      <div>
-        <button id="refreshBtn">Rafraîchir maintenant</button>
-        <div class="status" id="statusText">Clé non enregistrée.</div>
-      </div>
-    </div>
-    <div class="edit-note">
-      📝 <strong>Modifier :</strong> Change <code>quantite</code> et <code>prixAchat</code> dans <code>portfolio</code> (lignes 106-117).
-    </div>
-    <div class="error" id="errorText"></div>
+<!-- HOME BUTTON -->
 
-    <table>
-      <thead>
-        <tr>
-          <th>Symbole</th>
-          <th>Quantité</th>
-          <th>Prix achat</th>
-          <th>Capital investi CAD</th>
-          <th>Prix actuel CAD</th>
-          <th>Valeur actuelle CAD</th>
-          <th>Gain/Perte CAD</th>
-          <th>Gain/Perte %</th>
-        </tr>
-      </thead>
-      <tbody id="portfolioBody"></tbody>
-    </table>
-  </div>
+<a href="index.html" class="home-btn" title="Retour à l'accueil">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+<polyline points="9 22 9 12 15 12 15 22"/>
+</svg>
+Accueil
+</a>
 
-  <script>
-    // === TES 11 POSITIONS (CAD) ================================
-    const portfolio = [
-      { ticker: "NVDA",  quantite: 3,  prixAchat: 400, isCAD: false },
-      { ticker: "AAPL",  quantite: 10, prixAchat: 150, isCAD: false },
-      { ticker: "GOOG",  quantite: 5,  prixAchat: 140, isCAD: false },
-      { ticker: "MSFT",  quantite: 4,  prixAchat: 300, isCAD: false },
-      { ticker: "AMZN",  quantite: 2,  prixAchat: 130, isCAD: false },
-      { ticker: "AVGO",  quantite: 1,  prixAchat: 800, isCAD: false },
-      { ticker: "META",  quantite: 3,  prixAchat: 250, isCAD: false },
-      { ticker: "TSLA",  quantite: 6,  prixAchat: 200, isCAD: false },
-      { ticker: "WMT",   quantite: 8,  prixAchat: 60,  isCAD: false },
-      { ticker: "LLY",   quantite: 2,  prixAchat: 500, isCAD: false },
-      
-    // ===========================================================
+<div class="container">
 
-    // Taux USD/CAD actuel (≈1.37) - met à jour manuellement [web:61]
-    const USD_TO_CAD = 1.37;
+<!-- HEADER -->
 
-    let FINNHUB_API_KEY = "";
+<header>
+<div class="header-tag">Outil d'analyse</div>
+<h1>Analyse Fondamentale<br><span>Complète — Actions</span></h1>
+<p class="subtitle">// Données TTM · Sources 2025–2026 · 11 critères · Seuils codifiés</p>
+</header>
 
-    const keyInput   = document.getElementById("finnhubKey");
-    const saveKeyBtn = document.getElementById("saveKeyBtn");
-    const statusText = document.getElementById("statusText");
-    const errorText  = document.getElementById("errorText");
-    const portfolioBody = document.getElementById("portfolioBody");
-    const refreshBtn = document.getElementById("refreshBtn");
+<!-- SEARCH PANEL -->
 
-    // Charger clé localStorage
-    const savedKey = localStorage.getItem("FINNHUB_API_KEY");
-    if (savedKey) {
-      FINNHUB_API_KEY = savedKey;
-      keyInput.value = "********";
-      statusText.textContent = "Clé chargée. Prêt !";
-    }
+<div class="search-panel">
+<div class="panel-label">// Saisir le(s) ticker(s)</div>
+<div class="search-row">
+<div class="input-group">
+<label>Symbole(s) boursier(s) — séparés par des virgules</label>
+<input type="text" id="tickerInput" placeholder="ex: AAPL, MSFT, NVDA ou NASDAQ:AAPL" />
+</div>
+<button class="btn-analyse" id="analyseBtn" onclick="lancerAnalyse()">
+Analyser →
+</button>
+</div>
+<div class="examples">
+<span>Exemples :</span>
+<button class="example-chip" onclick="setTicker('AAPL')">AAPL</button>
+<button class="example-chip" onclick="setTicker('MSFT, GOOGL')">MSFT, GOOGL</button>
+<button class="example-chip" onclick="setTicker('NVDA, AMD, INTC')">Semi-conducteurs</button>
+<button class="example-chip" onclick="setTicker('JPM, BAC, GS')">Bancaires</button>
+<button class="example-chip" onclick="setTicker('TSLA, F, GM')">Auto</button>
+</div>
+</div>
 
-    saveKeyBtn.addEventListener("click", () => {
-      const val = keyInput.value.trim();
-      if (!val) {
-        alert("Entre une clé Finnhub valide.");
-        return;
-      }
-      FINNHUB_API_KEY = val;
-      localStorage.setItem("FINNHUB_API_KEY", val);
-      keyInput.value = "********";
-      statusText.textContent = "Clé Finnhub enregistrée.";
-    });
+<!-- STATUS BAR -->
 
-    async function fetchQuote(symbol) {
-      if (!FINNHUB_API_KEY || !symbol) return 0;
-      const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_API_KEY}`;
-      try {
-        const resp = await fetch(url);
-        if (!resp.ok) return 0;
-        const data = await resp.json();
-        return data.c || 0;
-      } catch {
-        return 0;
-      }
-    }
+<div class="status-bar" id="statusBar">
+<div class="spinner"></div>
+<span id="statusText">Collecte des données Finnhub en cours…</span>
+</div>
 
-    async function fetchAllPrices() {
-      if (!FINNHUB_API_KEY) {
-        errorText.textContent = "Enregistre ta clé Finnhub.";
-        return;
-      }
-      errorText.textContent = "";
-      statusText.textContent = "Chargement… (USD→CAD 1.37)";
-      refreshBtn.disabled = true;
+<!-- OUTPUT -->
 
-      try {
-        const prices = {};
-        for (const pos of portfolio) {
-          if (pos.ticker) {
-            prices[pos.ticker] = await fetchQuote(pos.ticker);
-          }
-        }
-        renderTable(prices);
-        const now = new Date();
-        statusText.textContent = "Mis à jour : " + now.toLocaleTimeString();
-      } catch (err) {
-        errorText.textContent = "Erreur: " + err.message;
-      } finally {
-        refreshBtn.disabled = false;
-      }
-    }
+<div id="output">
+<div class="output-header">
+<div>
+<div class="panel-label" style="margin-bottom:4px">// Résultat de l'analyse</div>
+<span class="ticker-badge" id="tickerBadge"></span>
+</div>
+<button class="btn-copy" onclick="copierResultat()">⎘ Copier</button>
+</div>
+<div class="analysis-content" id="analysisContent"></div>
+</div>
 
-    function renderTable(priceMap) {
-      portfolioBody.innerHTML = "";
-      let totalQuantite = 0;
-      let totalCapitalCAD = 0;
-      let totalValeurCAD = 0;
-      let totalGainCAD = 0;
-      let totalInvestiCAD = 0;
+<footer>
+<span>© Analyse Fondamentale — Données Finnhub</span>
+<span>Usage strictement informatif — Pas un conseil financier</span>
+</footer>
+</div>
 
-      portfolio.forEach(pos => {
-        const prixUSD = priceMap[pos.ticker] || 0;
-        const prixCAD = pos.isCAD ? prixUSD : prixUSD * USD_TO_CAD;
-        const capitalInvestiCAD = pos.quantite * pos.prixAchat;
-        const valeurActuelleCAD = pos.quantite * prixCAD;
-        const gainCAD = valeurActuelleCAD - capitalInvestiCAD;
-        const gainPct = capitalInvestiCAD !== 0 ? (gainCAD / capitalInvestiCAD) * 100 : 0;
+<script>
+// ══════════════════════════════════════════════════════
+// CLÉ API FINNHUB — À remplacer par votre clé réelle
+// ══════════════════════════════════════════════════════
+const FINNHUB_KEY = 'VOTRE_CLÉ_FINNHUB_ICI';
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages';
 
-        totalQuantite += pos.quantite;
-        totalCapitalCAD += capitalInvestiCAD;
-        totalValeurCAD += valeurActuelleCAD;
-        totalGainCAD += gainCAD;
-        if (capitalInvestiCAD > 0) totalInvestiCAD += capitalInvestiCAD;
+// ── Helpers UI ──────────────────────────────────────
+function setTicker(val) {
+document.getElementById('tickerInput').value = val;
+document.getElementById('tickerInput').focus();
+}
 
-        const tr = document.createElement("tr");
+function setStatus(msg, active = true) {
+const bar = document.getElementById('statusBar');
+document.getElementById('statusText').textContent = msg;
+bar.classList.toggle('active', active);
+}
 
-        const tdSym = document.createElement("td");
-        tdSym.textContent = pos.ticker;
-        tr.appendChild(tdSym);
+function showOutput(html, tickers) {
+const out = document.getElementById('output');
+document.getElementById('analysisContent').innerHTML = html;
+document.getElementById('tickerBadge').textContent = tickers.toUpperCase();
+out.classList.add('visible');
+out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-        const tdQ = document.createElement("td");
-        tdQ.textContent = pos.quantite;
-        tr.appendChild(tdQ);
+function copierResultat() {
+const text = document.getElementById('analysisContent').innerText;
+navigator.clipboard.writeText(text).then(() => {
+const btn = document.querySelector('.btn-copy');
+btn.textContent = '✓ Copié';
+setTimeout(() => btn.textContent = '⎘ Copier', 2000);
+});
+}
 
-        const tdPA = document.createElement("td");
-        tdPA.textContent = pos.prixAchat.toFixed(2);
-        tr.appendChild(tdPA);
+// ── Nettoyage du ticker ──────────────────────────────
+function cleanTicker(raw) {
+return raw.replace(/^(NASDAQ:|NYSE:|TSX:|AMEX:)/i, '').trim().toUpperCase();
+}
 
-        const tdCapital = document.createElement("td");
-        tdCapital.textContent = capitalInvestiCAD.toFixed(2);
-        tr.appendChild(tdCapital);
+// ── Appels Finnhub ───────────────────────────────────
+async function finnhub(endpoint) {
+const url = `https://finnhub.io/api/v1${endpoint}&token=${FINNHUB_KEY}`;
+const r = await fetch(url);
+if (!r.ok) throw new Error(`Finnhub ${r.status}: ${endpoint}`);
+return r.json();
+}
 
-        const tdPrix = document.createElement("td");
-        tdPrix.textContent = prixCAD ? prixCAD.toFixed(2) : "N/D";
-        tr.appendChild(tdPrix);
+async function fetchStockData(ticker) {
+const [quote, profile, metrics, earnings] = await Promise.allSettled([
+finnhub(`/quote?symbol=${ticker}`),
+finnhub(`/stock/profile2?symbol=${ticker}`),
+finnhub(`/stock/metric?symbol=${ticker}&metric=all`),
+finnhub(`/stock/earnings?symbol=${ticker}&limit=4`)
+]);
 
-        const tdVal = document.createElement("td");
-        tdVal.textContent = valeurActuelleCAD.toFixed(2);
-        tr.appendChild(tdVal);
+const q = quote.status === 'fulfilled' ? quote.value : {};
+const p = profile.status === 'fulfilled' ? profile.value : {};
+const m = metrics.status === 'fulfilled' ? metrics.value?.metric ?? {} : {};
+const e = earnings.status === 'fulfilled' ? earnings.value ?? [] : [];
 
-        const tdGain = document.createElement("td");
-        tdGain.textContent = gainCAD.toFixed(2);
-        tdGain.className = gainCAD >= 0 ? "gain" : "loss";
-        tr.appendChild(tdGain);
+return { ticker, quote: q, profile: p, metrics: m, earnings: e };
+}
 
-        const tdGainPct = document.createElement("td");
-        tdGainPct.textContent = gainPct.toFixed(2) + "%";
-        tdGainPct.className = gainPct >= 0 ? "gain" : "loss";
-        tr.appendChild(tdGainPct);
+// ── Formatage du bloc de données pour Claude ─────────
+function formatDataBlock(data) {
+const { ticker, quote, profile, metrics, earnings } = data;
+const m = metrics;
 
-        portfolioBody.appendChild(tr);
-      });
+const safe = (v, suffix = '') =>
+v !== undefined && v !== null && v !== 0 ? `${v}${suffix}` : 'N/D';
 
-      // Totaux
-      const trTotal = document.createElement("tr");
-      trTotal.className = "footer-row";
+return `
+TICKER: ${ticker}
+Société: ${profile.name ?? 'N/D'} | Secteur: ${profile.finnhubIndustry ?? 'N/D'} | Pays: ${profile.country ?? 'N/D'}
+Capitalisation: ${profile.marketCapitalization ? (profile.marketCapitalization / 1000).toFixed(1) + ' Mrd$' : 'N/D'}
+Prix actuel: ${safe(quote.c, '$')} | Variation jour: ${safe(quote.dp, '%')}
+52s High: ${safe(quote.h, '$')} | 52s Low: ${safe(quote.l, '$')}
 
-      const tdLabel = document.createElement("td");
-      tdLabel.textContent = "TOTAL CAD";
-      trTotal.appendChild(tdLabel);
+--- RATIOS DE VALORISATION ---
+P/E TTM: ${safe(m['peNormalizedAnnual'])}
+P/E Forward: ${safe(m['forwardPE'])}
+P/B: ${safe(m['pbAnnual'])}
+PEG (CHEVILLE): ${safe(m['pegRatio'])}
+EV/EBITDA: ${safe(m['evToEbitda'])}
+P/S: ${safe(m['psAnnual'])}
+P/FCF: ${safe(m['pfcfAnnual'])}
 
-      const tdTotalQ = document.createElement("td");
-      tdTotalQ.textContent = totalQuantite.toFixed(0);
-      trTotal.appendChild(tdTotalQ);
+--- RENTABILITÉ ---
+ROE 5 ans: ${safe(m['roe5Y'], '%')}
+ROE TTM: ${safe(m['roeTTM'], '%')}
+ROA TTM: ${safe(m['roaTTM'], '%')}
+Marge nette TTM: ${safe(m['netProfitMarginTTM'], '%')}
+Marge brute TTM: ${safe(m['grossMarginTTM'], '%')}
+Marge EBITDA TTM: ${safe(m['ebitdaMarginTTM'], '%')}
 
-      const tdTotalPA = document.createElement("td");
-      tdTotalPA.textContent = "-";
-      trTotal.appendChild(tdTotalPA);
+--- BILAN & LIQUIDITÉ ---
+Ratio rapide: ${safe(m['quickRatioAnnual'])}
+Ratio courant: ${safe(m['currentRatioAnnual'])}
+Dette/Équité: ${safe(m['totalDebt/totalEquityAnnual'])}
+Dette/Actifs: ${safe(m['longTermDebt/equityAnnual'])}
+Couverture intérêts: ${safe(m['interestCoverage'])}
 
-      const tdTotalCapital = document.createElement("td");
-      tdTotalCapital.textContent = totalCapitalCAD.toFixed(2);
-      trTotal.appendChild(tdTotalCapital);
+--- CROISSANCE ---
+Croissance CA 5 ans: ${safe(m['revenueGrowth5Y'], '%')}
+Croissance CA 1 an: ${safe(m['revenueGrowthTTMYoy'], '%')}
+Croissance BPA 5 ans: ${safe(m['epsGrowth5Y'], '%')}
 
-      const tdTotalPrix = document.createElement("td");
-      tdTotalPrix.textContent = "-";
-      trTotal.appendChild(tdTotalPrix);
+--- FCF & DIVIDENDE ---
+Rendement FCF: ${safe(m['fcfYield'], '%')}
+Dividende annuel: ${safe(m['dividendPerShareAnnual'], '$')}
+Taux de distribution: ${safe(m['payoutRatioAnnual'], '%')}
+Rendement dividende: ${safe(m['dividendYieldIndicatedAnnual'], '%')}
 
-      const tdTotalVal = document.createElement("td");
-      tdTotalVal.textContent = totalValeurCAD.toFixed(2);
-      trTotal.appendChild(tdTotalVal);
+--- RÉSULTATS RÉCENTS ---
+${earnings.slice(0, 4).map(e => `T${e.period ?? ''}: EPS réel ${safe(e.actual)} vs estimé ${safe(e.estimate)} (surprise: ${safe(e.surprise, '')})`).join('\n') || 'N/D'}
+`.trim();
+}
 
-      const tdTotalGain = document.createElement("td");
-      tdTotalGain.textContent = totalGainCAD.toFixed(2);
-      tdTotalGain.className = totalGainCAD >= 0 ? "gain" : "loss";
-      trTotal.appendChild(tdTotalGain);
+// ── Prompt Claude ────────────────────────────────────
+function buildPrompt(dataBlocks, rawInput) {
+return `Tu es un analyste financier senior francophone expert en analyse fondamentale.
+Voici les données de marché récupérées via l'API Finnhub pour : ${rawInput.toUpperCase()}
 
-      const tdTotalPct = document.createElement("td");
-      const totalGainPct = totalInvestiCAD > 0 ? (totalGainCAD / totalInvestiCAD) * 100 : 0;
-      tdTotalPct.textContent = totalGainPct.toFixed(2) + "%";
-      tdTotalPct.className = totalGainPct >= 0 ? "gain" : "loss";
-      trTotal.appendChild(tdTotalPct);
+${dataBlocks}
 
-      portfolioBody.appendChild(trTotal);
-    }
+---
+Réalise une ANALYSE FONDAMENTALE COMPLÈTE selon le format suivant, STRICTEMENT en français professionnel. Utilise exclusivement les données fournies ci-dessus (cite "Finnhub/TTM" comme source pour chaque donnée chiffrée).
 
-    refreshBtn.addEventListener("click", fetchAllPrices);
-    setInterval(fetchAllPrices, 60000);
-  </script>
+## TABLEAU DES RATIOS CLÉS
+
+Produis un tableau Markdown avec ces colonnes exactes :
+| Ticker | Secteur | P/E | CHEVILLE | ROE 5ans | Ratio rapide | Dette/Équité | Marge nette | EV/EBITDA | Couv. intérêts | Croiss. CA | Rend. FCF | Distribution | Score global |
+
+RÈGLES DE CODAGE COULEUR (à appliquer dans chaque cellule) :
+- P/E : Vert≤16 | Orange 16-20 | Rouge≥20
+- CHEVILLE (PEG) : Vert≤1,0 | Orange 1,0-1,5 | Rouge≥1,5
+- ROE 5 ans : Vert≥15% | Orange 10-15% | Rouge<10%
+- Ratio rapide : Vert≥1,0 | Orange 0,5-1,0 | Rouge<0,5
+- Dette/Équité : Vert≤0,5 | Orange 0,5-1,0 | Rouge>1,0
+- Marge nette : Vert≥10% | Orange 5-10% | Rouge<5%
+- EV/EBITDA : Vert≤8 | Orange 8-12 | Rouge≥12
+- Couv. intérêts : Vert≥5x | Orange 3-5x | Rouge<3x
+- Croiss. CA : Vert≥10% | Orange 5-10% | Rouge<5%
+- Rend. FCF : Vert≥8% | Orange 4-8% | Rouge<4%
+- Distribution : Vert 20-80% | Orange <20% ou >80% | Rouge >100%
+
+Format de chaque cellule : "12,5 🟢" ou "18,3 🟠" ou "25,1 🔴" + 2-3 mots commentaire
+Score global : format "8V/2O/1R"
+
+## 2. ANALYSE PAR SECTEUR
+
+Regroupe par secteur/industrie. Pour chaque secteur :
+- Dynamique actuelle (2-3 phrases)
+- Position relative des titres vs pairs
+- Mises en garde spécifiques
+
+## 3. VERDICT INDIVIDUEL
+
+Pour chaque ticker (1 paragraphe 4-6 phrases) :
+✅ Qualité fondamentale (ROE, marges, bilan)
+✅ Valorisation vs secteur
+✅ Points forts / points de vigilance
+✅ CONCLUSION : "Profil qualité attractive" / "Correct sans marge de sécurité" / "Spéculatif/cyclique"
+✅ Score : X/11 critères Vert — Drapeaux rouges listés
+
+## 4. CLASSEMENT GLOBAL
+
+**A. QUALITÉ — À PRIVILÉGIER** (majorité Vert, valorisation raisonnable)
+• [TICKER] : justification 1 phrase
+
+**B. NEUTRE — À SURVEILLER** (1-2 faiblesses, valorisation tendue)
+• [TICKER] : justification 1 phrase
+
+**C. ÉVITER** (≥3 Rouge, bilan fragile ou survalorisation)
+• [TICKER] : justification 1 phrase
+
+## 5. RÉSUMÉ FINAL
+
+3 paragraphes courts :
+1. Actions recommandées + potentiel sectoriel
+2. Risque global du panier
+3. Logique d'allocation (poids par catégorie)
+
+---
+EXIGENCES : Français professionnel · Tableaux Markdown uniquement · Citation "Finnhub/TTM" après chaque donnée chiffrée · Respect strict des seuils du tableau.`;
+}
+
+// ── Rendu Markdown simple ────────────────────────────
+function renderMarkdown(md) {
+let html = md
+// Escape HTML
+.replace(/&/g, '&amp;')
+.replace(/</g, '&lt;')
+.replace(/>/g, '&gt;')
+
+// Headings
+.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+
+// Bold
+.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+
+// Italic / em
+.replace(/\*(.+?)\*/g, '<em>$1</em>')
+
+// Color emojis → spans
+.replace(/🟢/g, '<span class="vert">●</span>')
+.replace(/🟠/g, '<span class="orange">●</span>')
+.replace(/🔴/g, '<span class="rouge">●</span>')
+
+// Horizontal rule
+.replace(/^---$/gm, '<hr style="border-color:var(--border);margin:24px 0">')
+
+// Tables
+.replace(/(\|.+\|\n)+/gm, (table) => {
+const rows = table.trim().split('\n');
+let out = '<table>';
+rows.forEach((row, i) => {
+if (/^\|[\s\-:]+\|/.test(row)) return; // separator row
+const cells = row.split('|').filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+const tag = (i === 0) ? 'th' : 'td';
+out += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+});
+out += '</table>';
+return out;
+})
+
+// Blockquote
+.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+
+// Lists
+.replace(/^• (.+)$/gm, '<li>$1</li>')
+.replace(/^- (.+)$/gm, '<li>$1</li>')
+.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+
+// Wrap consecutive <li> in <ul>
+.replace(/(<li>.+<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
+
+// Paragraphs
+.split(/\n{2,}/)
+.map(block => {
+block = block.trim();
+if (!block) return '';
+if (/^<(h[1-6]|table|ul|ol|blockquote|hr)/.test(block)) return block;
+return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+})
+.join('\n');
+
+return html;
+}
+
+// ── ANALYSE PRINCIPALE ───────────────────────────────
+async function lancerAnalyse() {
+const raw = document.getElementById('tickerInput').value.trim();
+if (!raw) { alert('Veuillez saisir au moins un ticker.'); return; }
+if (FINNHUB_KEY === 'VOTRE_CLÉ_FINNHUB_ICI') {
+document.getElementById('output').classList.add('visible');
+document.getElementById('analysisContent').innerHTML =
+'<div class="error-box">⚠ Clé API Finnhub non configurée.<br>Ouvrez le fichier HTML et remplacez <code>VOTRE_CLÉ_FINNHUB_ICI</code> par votre clé Finnhub.</div>';
+return;
+}
+
+const btn = document.getElementById('analyseBtn');
+btn.disabled = true;
+document.getElementById('output').classList.remove('visible');
+
+// Parser les tickers
+const tickers = raw.split(/[,\s;]+/)
+.map(cleanTicker)
+.filter(t => t.length > 0)
+.slice(0, 8); // max 8
+
+try {
+// Étape 1 : Finnhub
+setStatus(`Collecte Finnhub pour ${tickers.join(', ')}…`);
+const stocksData = await Promise.all(tickers.map(fetchStockData));
+
+// Étape 2 : Claude
+setStatus('Analyse fondamentale en cours (IA)…');
+const dataBlocks = stocksData.map(formatDataBlock).join('\n\n' + '='.repeat(60) + '\n\n');
+const prompt = buildPrompt(dataBlocks, raw);
+
+const response = await fetch(CLAUDE_API, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+model: 'claude-sonnet-4-20250514',
+max_tokens: 1000,
+messages: [{ role: 'user', content: prompt }]
+})
+});
+
+if (!response.ok) {
+const err = await response.json().catch(() => ({}));
+throw new Error(err?.error?.message ?? `Claude API ${response.status}`);
+}
+
+const data = await response.json();
+const fullText = data.content
+.filter(b => b.type === 'text')
+.map(b => b.text)
+.join('\n');
+
+setStatus('', false);
+showOutput(renderMarkdown(fullText), tickers.join(' · '));
+
+} catch (err) {
+setStatus('', false);
+document.getElementById('output').classList.add('visible');
+document.getElementById('tickerBadge').textContent = raw.toUpperCase();
+document.getElementById('analysisContent').innerHTML =
+`<div class="error-box">⚠ Erreur : ${err.message}</div>`;
+} finally {
+btn.disabled = false;
+}
+}
+
+// Touche Entrée
+document.getElementById('tickerInput').addEventListener('keydown', e => {
+if (e.key === 'Enter') lancerAnalyse();
+});
+</script>
+
 </body>
 </html>
-
 

@@ -68,10 +68,6 @@
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
         }
 
-        .home-btn:active {
-            transform: translateY(0);
-        }
-
         /* ============================================
            HEADER
            ============================================ */
@@ -210,7 +206,7 @@
         }
 
         /* ============================================
-           BARRE CLÉ API
+           BARRE CLÉ API — MASQUÉE
            ============================================ */
         .api-bar {
             display: flex;
@@ -231,21 +227,62 @@
             white-space: nowrap;
         }
 
-        .api-bar input {
+        .api-input-wrapper {
             flex: 1;
             min-width: 200px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .api-input-wrapper input {
+            width: 100%;
             background: var(--bg-primary);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-sm);
-            padding: 8px 14px;
+            padding: 8px 42px 8px 14px;
             color: var(--text-primary);
             font-size: 0.85rem;
             font-family: monospace;
         }
 
-        .api-bar input:focus {
+        .api-input-wrapper input:focus {
             outline: none;
             border-color: var(--accent-blue);
+        }
+
+        .toggle-visibility {
+            position: absolute;
+            right: 6px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .toggle-visibility:hover {
+            color: var(--text-primary);
+        }
+
+        .api-status {
+            font-size: 0.78rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .api-status.connected {
+            background: var(--gain-bg);
+            color: var(--gain);
+        }
+
+        .api-status.disconnected {
+            background: var(--loss-bg);
+            color: var(--loss);
         }
 
         /* ============================================
@@ -579,7 +616,7 @@
 <body>
 
     <!-- ============================================
-         🏠 BOUTON RETOUR ACCUEIL — TRÈS VISIBLE
+         🏠 BOUTON RETOUR ACCUEIL
          ============================================ -->
     <div class="home-bar">
         <a href="index.html" class="home-btn">🏠 Retour à l'accueil</a>
@@ -620,11 +657,24 @@
             <span id="errorText"></span>
         </div>
 
-        <!-- 🔑 BARRE CLÉ API -->
+        <!-- ==========================================
+             🔑 CLÉ API — CHAMP MASQUÉ (type password)
+             ========================================== -->
         <div class="api-bar">
             <label>🔑 Clé API Finnhub :</label>
-            <input type="text" id="apiKeyInput" placeholder="Collez votre clé Finnhub ici..." />
+            <div class="api-input-wrapper">
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="Collez votre clé Finnhub ici..."
+                    autocomplete="off"
+                />
+                <button class="toggle-visibility" onclick="toggleApiVisibility()" id="toggleBtn" title="Afficher / Masquer">
+                    👁️
+                </button>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="sauvegarderApiKey()">Enregistrer</button>
+            <span class="api-status disconnected" id="apiStatus">Non connecté</span>
         </div>
 
         <!-- ✏️ ÉDITEUR DE PORTEFEUILLE -->
@@ -733,15 +783,21 @@
        INITIALISATION
        ============================================================ */
     document.addEventListener('DOMContentLoaded', () => {
+        // Charger la clé API depuis localStorage
         const savedKey = localStorage.getItem('ptf_apiKey');
         const savedPortfolio = localStorage.getItem('ptf_portfolio');
 
-        if (savedKey) API_KEY = savedKey;
+        if (savedKey) {
+            API_KEY = savedKey;
+            // Afficher des points dans le champ (la clé reste masquée)
+            document.getElementById('apiKeyInput').value = API_KEY;
+            majApiStatus(true);
+        }
+
         if (savedPortfolio) {
             try { portefeuille = JSON.parse(savedPortfolio); } catch(e) {}
         }
 
-        document.getElementById('apiKeyInput').value = API_KEY;
         genererEditeur();
 
         if (API_KEY) rafraichirDonnees();
@@ -752,8 +808,12 @@
     });
 
     /* ============================================================
-       🔑 CLÉ API
+       🔑 CLÉ API — MASQUÉE
        ============================================================ */
+
+    /**
+     * Enregistre la clé API dans localStorage (jamais visible en clair)
+     */
     function sauvegarderApiKey() {
         const val = document.getElementById('apiKeyInput').value.trim();
         if (!val) {
@@ -762,8 +822,53 @@
         }
         API_KEY = val;
         localStorage.setItem('ptf_apiKey', API_KEY);
-        afficherToast("Clé API enregistrée ✓", "success");
+        majApiStatus(true);
+        afficherToast("Clé API enregistrée et masquée ✓", "success");
+
+        // Remettre en mode password après enregistrement
+        document.getElementById('apiKeyInput').type = 'password';
+        document.getElementById('toggleBtn').textContent = '👁️';
+
         rafraichirDonnees();
+    }
+
+    /**
+     * Bascule la visibilité de la clé API (œil ouvert/fermé)
+     */
+    function toggleApiVisibility() {
+        const input = document.getElementById('apiKeyInput');
+        const btn = document.getElementById('toggleBtn');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🔒';
+            btn.title = 'Masquer la clé';
+
+            // Re-masquer automatiquement après 3 secondes
+            setTimeout(() => {
+                input.type = 'password';
+                btn.textContent = '👁️';
+                btn.title = 'Afficher la clé';
+            }, 3000);
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+            btn.title = 'Afficher la clé';
+        }
+    }
+
+    /**
+     * Met à jour le badge de statut de la clé API
+     */
+    function majApiStatus(connected) {
+        const el = document.getElementById('apiStatus');
+        if (connected) {
+            el.textContent = '🔐 Clé enregistrée';
+            el.className = 'api-status connected';
+        } else {
+            el.textContent = 'Non connecté';
+            el.className = 'api-status disconnected';
+        }
     }
 
     /* ============================================================
@@ -874,6 +979,7 @@
         if (!API_KEY) {
             afficherErreur("Entrez votre clé API Finnhub ci-dessus.");
             majStatut("error", "Clé manquante");
+            majApiStatus(false);
             return;
         }
 
@@ -899,8 +1005,10 @@
             } else if (erreurs.length === portefeuille.length) {
                 afficherErreur("Échec total. Vérifiez clé API / connexion.");
                 majStatut("error", "Erreur");
+                majApiStatus(false);
             } else {
                 majStatut("ok", "OK");
+                majApiStatus(true);
                 afficherToast("Données à jour ✓", "success");
             }
 

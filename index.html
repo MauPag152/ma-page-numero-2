@@ -18,6 +18,73 @@ body {
     min-height: 100vh;
 }
 
+/* ============================================
+   BOUTON ACCUEIL
+   ============================================ */
+.home-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 100%);
+    border-bottom: 1px solid #1a3050;
+}
+
+.home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: #0a1628;
+    color: #b0bec5;
+    text-decoration: none;
+    border: 1px solid #1a3050;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.home-btn:hover {
+    background: rgba(30, 144, 255, 0.1);
+    border-color: #1e90ff;
+    color: #4fc3f7;
+    transform: translateX(-2px);
+    box-shadow: 0 4px 15px rgba(30, 144, 255, 0.15);
+}
+
+.home-btn:active {
+    transform: scale(0.97);
+}
+
+.home-btn .home-arrow {
+    font-size: 14px;
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.home-btn:hover .home-arrow {
+    opacity: 1;
+    transform: translateX(-3px);
+}
+
+.home-breadcrumb {
+    font-size: 12px;
+    color: #5a6a7a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.home-breadcrumb span {
+    color: #4fc3f7;
+    font-weight: 600;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
 .header {
     background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 50%, #0d1b2a 100%);
     border-bottom: 2px solid #1e90ff;
@@ -641,11 +708,30 @@ body {
     }
     .api-key-section input { width: 100%; }
     .ticker-chips, .quick-examples { padding: 0 15px; }
+    .home-nav { padding: 10px 15px; }
+    .home-breadcrumb { display: none; }
+    .home-btn { padding: 8px 14px; font-size: 12px; }
 }
 </style>
 </head>
 <body>
 
+<!-- ============================================
+     BOUTON RETOUR ACCUEIL
+     ============================================ -->
+<nav class="home-nav">
+    <a href="index.html" class="home-btn" title="Retour à l'accueil">
+        <span class="home-arrow">←</span>
+        <span>🏠 Accueil</span>
+    </a>
+    <div class="home-breadcrumb">
+        <span>Accueil</span> / Analyse Fondamentale
+    </div>
+</nav>
+
+<!-- ============================================
+     HEADER
+     ============================================ -->
 <div class="header">
     <h1>📊 ANALYSE FONDAMENTALE <span>COMPLÈTE</span></h1>
     <div class="search-container">
@@ -842,7 +928,6 @@ async function finnhubFetch(endpoint, params = {}) {
     return resp.json();
 }
 
-// rate limiter: 60 calls/min for free tier
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function fetchCompanyProfile(symbol) {
@@ -884,43 +969,29 @@ function extractMetrics(profile, metrics, quote) {
     const m = metrics.metric || {};
     const s = metrics.series || {};
     
-    // Helper
     const val = (v) => (v !== undefined && v !== null && v !== '' && !isNaN(v)) ? parseFloat(v) : null;
     
-    // P/E
     let pe = val(m['peNormalizedAnnual']) || val(m['peTTM']) || val(m['peBasicExclExtraTTM']);
-    
-    // PEG
     let peg = val(m['pegAnnual']) || val(m['pegTTM']);
     
-    // ROE - try to get 5 year average
     let roe5 = val(m['roaeTTM']) || val(m['roeRfy']) || val(m['roeTTM']);
-    // If series data available for ROE, compute average
     if (s && s.annual && s.annual.roe) {
         const roeArr = s.annual.roe.slice(0, 5).map(x => x.v).filter(x => x !== null);
         if (roeArr.length > 0) roe5 = roeArr.reduce((a, b) => a + b, 0) / roeArr.length;
     }
     
-    // Quick Ratio
     let quickRatio = val(m['quickRatioQuarterly']) || val(m['quickRatioAnnual']);
     
-    // Debt to Equity
     let debtEquity = val(m['totalDebt/totalEquityQuarterly']) || val(m['totalDebt/totalEquityAnnual']) || val(m['longTermDebt/equityQuarterly']);
-    if (debtEquity && debtEquity > 10) debtEquity = debtEquity / 100; // sometimes in %
+    if (debtEquity && debtEquity > 10) debtEquity = debtEquity / 100;
     
-    // Net Margin
     let netMargin = val(m['netProfitMarginTTM']) || val(m['netProfitMarginAnnual']) || val(m['netProfitMargin5Y']);
-    
-    // EV/EBITDA
     let evEbitda = val(m['enterpriseValue/ebitdaTTM']) || val(m['currentEv/freeCashFlowTTM']);
     
-    // Interest Coverage
-    // Finnhub doesn't always have this directly — approximate
     let interestCov = null;
-    // Try from metrics
-    // Not always available, check ebitda / interest expense
+    if (m['interestCoverageAnnual']) interestCov = val(m['interestCoverageAnnual']);
+    if (!interestCov && m['interestCoverageTTM']) interestCov = val(m['interestCoverageTTM']);
     
-    // Revenue Growth
     let revGrowth = val(m['revenueGrowthTTMYoy']) || val(m['revenueGrowth3Y']) || val(m['revenueGrowth5Y']);
     if (s && s.annual && s.annual.revenue) {
         const revArr = s.annual.revenue.slice(0, 2).map(x => x.v);
@@ -929,49 +1000,27 @@ function extractMetrics(profile, metrics, quote) {
         }
     }
     
-    // FCF Yield
     let fcfYield = val(m['fcfYieldTTM']) || val(m['freeCashFlowYieldTTM']);
     if (!fcfYield && m['freeCashFlowPerShareTTM'] && quote && quote.c) {
         fcfYield = (val(m['freeCashFlowPerShareTTM']) / quote.c) * 100;
     }
-    // Also try from FCF / market cap
     let fcfPerShare = val(m['fcfPerShareTTM']) || val(m['freeCashFlowPerShareTTM']);
     if (!fcfYield && fcfPerShare && quote && quote.c && quote.c > 0) {
         fcfYield = (fcfPerShare / quote.c) * 100;
     }
     
-    // Payout Ratio
     let payout = val(m['payoutRatioAnnual']) || val(m['payoutRatioTTM']);
-    if (payout && payout > 5 && payout <= 500) { /* ok, likely in % */ }
-    else if (payout && payout <= 5) { payout = payout * 100; } // convert ratio to %
+    if (payout && payout > 5 && payout <= 500) { /* ok */ }
+    else if (payout && payout <= 5) { payout = payout * 100; }
     
-    // Dividend yield
     let divYield = val(m['dividendYieldIndicatedAnnual']) || val(m['dividendYield5Y']);
-    
-    // Market cap
-    let marketCap = val(profile.marketCapitalization); // in millions
-    
-    // Price
+    let marketCap = val(profile.marketCapitalization);
     let price = quote ? val(quote.c) : null;
-    
-    // 52w range
     let high52 = val(m['52WeekHigh']);
     let low52 = val(m['52WeekLow']);
-    
-    // Beta
     let beta = val(m['beta']);
-    
-    // EPS
     let eps = val(m['epsBasicExclExtraItemsTTM']) || val(m['epsNormalizedAnnual']) || val(m['epsTTM']);
-    
-    // Book value per share
     let bvps = val(m['bookValuePerShareQuarterly']) || val(m['bookValuePerShareAnnual']);
-    
-    // Try to get interest coverage from EBIT/interest expense
-    let ebitPerShare = val(m['ebitPerShareTTM']);
-    // rough approximation if possible
-    if (!interestCov && m['interestCoverageAnnual']) interestCov = val(m['interestCoverageAnnual']);
-    if (!interestCov && m['interestCoverageTTM']) interestCov = val(m['interestCoverageTTM']);
     
     return {
         symbol: profile.ticker || '',
@@ -1072,7 +1121,6 @@ function computeScore(data) {
         if (cc.color === 'V') v++;
         else if (cc.color === 'O') o++;
         else if (cc.color === 'R') { r++; flags.push(c); }
-        // N/D counts as nothing
     });
     
     return { v, o, r, flags, total: v + o + r };
@@ -1108,7 +1156,6 @@ function buildReport(results) {
     const arr = Object.values(results).filter(r => r.symbol);
     if (arr.length === 0) return '<div class="error-box">Aucune donnée valide récupérée.</div>';
     
-    // Compute scores
     arr.forEach(r => { r._score = computeScore(r); });
     
     let html = '';
@@ -1178,13 +1225,11 @@ function buildReport(results) {
         html += `<p><strong>Titres analysés :</strong> ${tks}. `;
         html += `Valorisation moyenne du groupe : P/E ~${avgPE.toFixed(1)}, marge nette moyenne ~${avgMargin.toFixed(1)}%. `;
         
-        // Best in group
         const sorted = [...stocks].sort((a, b) => b._score.v - a._score.v);
         if (sorted.length > 1) {
             html += `<strong>${sorted[0].symbol}</strong> affiche le meilleur profil fondamental (${sorted[0]._score.v}V). `;
         }
         
-        // Warnings
         const highDebt = stocks.filter(s => s.debtEquity && s.debtEquity > 1.0);
         if (highDebt.length) html += `⚠️ Endettement élevé : ${highDebt.map(s => s.symbol).join(', ')}. `;
         
@@ -1213,7 +1258,6 @@ function buildReport(results) {
         html += `<h3>${catEmoji} ${r.symbol} — ${r.name || 'N/D'}</h3>`;
         
         html += `<p>`;
-        // Quality
         html += `<strong>✅ Qualité fondamentale :</strong> `;
         if (r.roe5 !== null) html += `ROE ~${r.roe5.toFixed(1)}%`;
         if (r.netMargin !== null) html += `, marge nette ${r.netMargin.toFixed(1)}%`;
@@ -1222,14 +1266,12 @@ function buildReport(results) {
         if (r.interestCov !== null) html += `, couverture intérêts ${r.interestCov.toFixed(1)}x`;
         html += `. `;
         
-        // Valuation
         html += `<br><strong>✅ Valorisation :</strong> `;
         if (r.pe !== null) html += `P/E ${r.pe.toFixed(1)}`;
         if (r.peg !== null) html += `, PEG ${r.peg.toFixed(2)}`;
         if (r.evEbitda !== null) html += `, EV/EBITDA ${r.evEbitda.toFixed(1)}`;
         html += `. `;
         
-        // Strengths
         const greens = [];
         const criteria2 = ['pe', 'peg', 'roe5', 'quickRatio', 'debtEquity', 'netMargin', 'evEbitda', 'interestCov', 'revGrowth', 'fcfYield', 'payout'];
         criteria2.forEach(c => {
@@ -1238,13 +1280,11 @@ function buildReport(results) {
         });
         if (greens.length) html += `<br><strong>✅ Points forts :</strong> ${greens.slice(0, 5).join(', ')}. `;
         
-        // Vigilance
         if (s.flags.length > 0) {
             html += `<br><strong>⚠️ Points de vigilance :</strong> ${s.flags.map(flagName).join(', ')}. `;
         }
         html += `</p>`;
         
-        // Conclusion
         let concLabel, concClass;
         if (cat === 'quality') { concLabel = 'Profil qualité attractive'; concClass = 'conclusion-quality'; }
         else if (cat === 'avoid') { concLabel = 'Spéculatif / risqué'; concClass = 'conclusion-avoid'; }
@@ -1374,13 +1414,12 @@ async function startAnalysis() {
     allResults = {};
     
     const total = tickers.length;
-    const delayMs = total > 10 ? 1200 : (total > 5 ? 800 : 500); // rate limiting
+    const delayMs = total > 10 ? 1200 : (total > 5 ? 800 : 500);
     
     showLoading(true, `🔍 Analyse de ${total} action(s) via Finnhub API...`, 5);
     log(`Démarrage de l'analyse pour ${total} ticker(s): ${tickers.join(', ')}`);
     
     try {
-        // Verify API key first
         showLoading(true, '🔐 Vérification de la clé API...', 8);
         log('Vérification de la clé API...');
         try {
@@ -1401,21 +1440,17 @@ async function startAnalysis() {
             showLoading(true, `📊 Analyse ${i + 1}/${total} : ${sym}...`, pct);
             
             try {
-                // Fetch profile
                 const profile = await fetchCompanyProfile(sym);
                 await sleep(delayMs);
                 
-                // Fetch metrics
                 const metrics = await fetchBasicFinancials(sym);
                 await sleep(delayMs);
                 
-                // Fetch quote
                 const quote = await fetchQuote(sym);
                 await sleep(delayMs);
                 
-                // Extract
                 const data = extractMetrics(profile, metrics, quote);
-                data.symbol = sym; // ensure symbol is set even if profile empty
+                data.symbol = sym;
                 
                 if (!data.name && profile.name) data.name = profile.name;
                 if (!data.name) data.name = sym;
@@ -1458,7 +1493,6 @@ async function startAnalysis() {
         await sleep(800);
         showLoading(false);
         
-        // Scroll to results
         document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
         
     } catch (error) {
@@ -1483,4 +1517,3 @@ async function startAnalysis() {
 
 </body>
 </html>
-

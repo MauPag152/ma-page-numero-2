@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Mon Portefeuille Boursier</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a2332;
+            --bg-row-hover: #1e293b;
+            --text-primary: #ffffff;
+            --text-secondary: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --gain: #10b981;
+            --gain-bg: rgba(16, 185, 129, 0.1);
+            --loss: #ef4444;
+            --loss-bg: rgba(239, 68, 68, 0.1);
+            --neutral: #f59e0b;
+            --border: #1e293b;
+            --border-light: #334155;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .home-bar {
+            background: var(--bg-secondary);
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #000;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo h1 {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gain);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.error { background: var(--loss); animation: none; }
+        .status-dot.loading { background: var(--neutral); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(59,130,246,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+        .btn-secondary:hover { background: var(--bg-row-hover); color: #ffffff; }
+
+        .btn-danger { background: var(--loss-bg); color: var(--loss); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .api-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .api-bar label { font-size: 0.8rem; color: #ffffff; font-weight: 700; white-space: nowrap; }
+
+        .api-input-wrapper { flex: 1; min-width: 200px; position: relative; display: flex; align-items: center; }
+
+        .api-input-wrapper input {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 8px 42px 8px 14px;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+
+        .api-input-wrapper input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .toggle-visibility {
+            position: absolute;
+            right: 6px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+        .toggle-visibility:hover { color: #ffffff; }
+
+        .api-status { font-size: 0.78rem; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+        .api-status.connected { background: var(--gain-bg); color: var(--gain); }
+        .api-status.disconnected { background: var(--loss-bg); color: var(--loss); }
+
+        .edit-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .edit-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .edit-panel-header h3 { font-size: 1rem; display: flex; align-items: center; gap: 8px; color: #ffffff; }
+        .edit-panel-body { padding: 16px 20px; }
+
+        .position-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .position-row:last-child { border-bottom: none; }
+
+        .position-row .pos-num {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .position-row input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .position-row input:focus { outline: none; border-color: var(--accent-blue); }
+        .position-row .input-ticker { width: 90px; text-transform: uppercase; font-weight: 700; font-family: monospace; }
+        .position-row .input-nom { width: 160px; }
+        .position-row .input-qty { width: 80px; text-align: right; }
+        .position-row .input-prix { width: 100px; text-align: right; }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            transition: all 0.3s;
+        }
+        .summary-card:hover { border-color: var(--border-light); }
+
+        .card-label {
+            font-size: 0.75rem;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .card-value { font-size: 1.6rem; font-weight: 700; }
+        .card-sub { font-size: 0.82rem; margin-top: 3px; }
+
+        .gain { color: var(--gain); }
+        .loss { color: var(--loss); }
+        .neutral { color: #ffffff; }
+
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-title .count {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+        }
+
+        .table-scroll { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 980px; }
+
+        thead th {
+            padding: 13px 18px;
+            text-align: left;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-blue);
+            white-space: nowrap;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+
+        thead th.text-right { text-align: right; }
+
+        /* Colonne Capital Investi — accentuée */
+        thead th.col-capital {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(6,182,212,0.5);
+        }
+
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:hover { background: var(--bg-row-hover); }
+        tbody tr:last-child { border-bottom: none; }
+
+        td { padding: 14px 18px; font-size: 0.88rem; white-space: nowrap; color: #ffffff; }
+        td.text-right { text-align: right; }
+
+        .ticker-cell { display: flex; align-items: center; gap: 10px; }
+
+        .ticker-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.68rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .ticker-info .symbol { font-weight: 700; color: #ffffff; }
+        .ticker-info .name { font-size: 0.72rem; color: var(--text-muted); }
+
+        .pnl-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.78rem;
+        }
+
+        .pnl-badge.gain { background: var(--gain-bg); color: var(--gain); }
+        .pnl-badge.loss { background: var(--loss-bg); color: var(--loss); }
+        .pnl-badge.neutral { background: rgba(245,158,11,0.1); color: var(--neutral); }
+
+        /* Cellule Capital Investi */
+        .capital-cell {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .weight-bar-container { display: flex; align-items: center; gap: 8px; }
+        .weight-bar { width: 50px; height: 5px; background: var(--bg-primary); border-radius: 3px; overflow: hidden; }
+        .weight-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); transition: width 0.5s; }
+        .weight-value { font-size: 0.78rem; color: var(--text-secondary); }
+
+        .total-row { background: var(--bg-secondary) !important; }
+        .total-row td { font-weight: 700; padding: 16px 18px; border-top: 2px solid var(--border-light); color: #ffffff; }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.active { transform: translateY(0); opacity: 1; }
+        .toast.success { background: var(--gain); color: white; }
+        .toast.error { background: var(--loss); color: white; }
+
+        .error-banner {
+            background: var(--loss-bg);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            margin-bottom: 14px;
+            color: var(--loss);
+            font-size: 0.85rem;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .error-banner.active { display: flex; }
+
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+        .footer a { color: var(--accent-blue); text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: stretch; }
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .card-value { font-size: 1.2rem; }
+            .container { padding: 14px; }
+            .position-row .input-nom { display: none; }
+        }
+        @media (max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="home-bar">
+        <a href="index.html" class="home-btn">🏠 Retour à l'accueil</a>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📈</div>
+                <h1>Mon Portefeuille</h1>
+            </div>
+            <div class="header-actions">
+                <div class="status-badge">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">En attente</span>
+                </div>
+                <button class="btn btn-primary" id="refreshBtn" onclick="rafraichirDonnees()">
+                    🔄 Rafraîchir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="error-banner" id="errorBanner">
+            <span>⚠️</span>
+            <span id="errorText"></span>
+        </div>
+
+        <div class="api-bar">
+            <label>🔑 Clé API Finnhub :</label>
+            <div class="api-input-wrapper">
+                <input type="password" id="apiKeyInput" placeholder="Collez votre clé Finnhub ici..." autocomplete="off" />
+                <button class="toggle-visibility" onclick="toggleApiVisibility()" id="toggleBtn" title="Afficher / Masquer">👁️</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="sauvegarderApiKey()">Enregistrer</button>
+            <span class="api-status disconnected" id="apiStatus">Non connecté</span>
+        </div>
+
+        <div class="edit-panel">
+            <div class="edit-panel-header">
+                <h3>✏️ Mes Positions</h3>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="ajouterLigneVide()">➕ Ajouter</button>
+                    <button class="btn btn-secondary btn-sm" onclick="sauvegarderPortefeuille()">💾 Sauvegarder</button>
+                </div>
+            </div>
+            <div class="edit-panel-body" id="editBody"></div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="card-label">Valeur Totale</div>
+                <div class="card-value neutral" id="totalValue">--</div>
+                <div class="card-sub" id="totalPositions">-- positions</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Capital Investi</div>
+                <div class="card-value neutral" id="totalCost">--</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Gain / Perte</div>
+                <div class="card-value" id="totalPnl">--</div>
+                <div class="card-sub" id="totalPnlPct">--</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">Meilleure Perf.</div>
+                <div class="card-value gain" id="bestPerformer">--</div>
+                <div class="card-sub gain" id="bestPerformerPct">--</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    📋 Résultats <span class="count" id="positionCount">0</span>
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-muted);" id="lastUpdate">Dernière MAJ : --</div>
+            </div>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Symbole</th>
+                            <th class="text-right">Qté</th>
+                            <th class="text-right">Prix Achat</th>
+                            <th class="text-right col-capital">Capital Investi</th>
+                            <th class="text-right">Prix Actuel</th>
+                            <th class="text-right">Valeur</th>
+                            <th class="text-right">Gain / Perte</th>
+                            <th class="text-right">%</th>
+                            <th class="text-right">Poids</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioBody">
+                        <tr>
+                            <td colspan="9" style="text-align:center; padding:40px; color:var(--text-muted);">
+                                Ajoutez vos positions ci-dessus, puis cliquez <strong>💾 Sauvegarder</strong> et <strong>🔄 Rafraîchir</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>Données par <a href="https://finnhub.io/" target="_blank">Finnhub</a> · Rafraîchissement auto toutes les 60s · Données différées ~15 min (plan gratuit)</p>
+    </footer>
+
+    <script>
+    let API_KEY = "";
+
+    let portefeuille = [
+        { ticker: "AAPL",  nom: "Apple",      quantite: 15, prixAchat: 142.50 },
+        { ticker: "MSFT",  nom: "Microsoft",   quantite: 10, prixAchat: 310.00 },
+        { ticker: "NVDA",  nom: "NVIDIA",      quantite: 20, prixAchat: 45.00  },
+        { ticker: "GOOGL", nom: "Alphabet",    quantite: 8,  prixAchat: 125.75 }
+    ];
+
+    let donneesMarcheActuelles = {};
+    let estEnChargement = false;
+    let intervalleRefresh = null;
+    const REFRESH_SEC = 60;
+
+    const COULEURS = [
+        '#3b82f6','#06b6d4','#8b5cf6','#ec4899',
+        '#f59e0b','#10b981','#ef4444','#6366f1',
+        '#14b8a6','#f97316','#84cc16','#e879f9'
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedKey = localStorage.getItem('ptf_apiKey');
+        const savedPortfolio = localStorage.getItem('ptf_portfolio');
+
+        if (savedKey) {
+            API_KEY = savedKey;
+            document.getElementById('apiKeyInput').value = API_KEY;
+            majApiStatus(true);
+        }
+
+        if (savedPortfolio) {
+            try { portefeuille = JSON.parse(savedPortfolio); } catch(e) {}
+        }
+
+        genererEditeur();
+        if (API_KEY) rafraichirDonnees();
+
+        intervalleRefresh = setInterval(() => {
+            if (API_KEY) rafraichirDonnees();
+        }, REFRESH_SEC * 1000);
+    });
+
+    function sauvegarderApiKey() {
+        const val = document.getElementById('apiKeyInput').value.trim();
+        if (!val) { afficherToast("Entrez une clé API valide", "error"); return; }
+        API_KEY = val;
+        localStorage.setItem('ptf_apiKey', API_KEY);
+        majApiStatus(true);
+        afficherToast("Clé API enregistrée et masquée ✓", "success");
+        document.getElementById('apiKeyInput').type = 'password';
+        document.getElementById('toggleBtn').textContent = '👁️';
+        rafraichirDonnees();
+    }
+
+    function toggleApiVisibility() {
+        const input = document.getElementById('apiKeyInput');
+        const btn = document.getElementById('toggleBtn');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🔒';
+            setTimeout(() => { input.type = 'password'; btn.textContent = '👁️'; }, 3000);
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+
+    function majApiStatus(connected) {
+        const el = document.getElementById('apiStatus');
+        if (connected) { el.textContent = '🔐 Clé enregistrée'; el.className = 'api-status connected'; }
+        else           { el.textContent = 'Non connecté';        el.className = 'api-status disconnected'; }
+    }
+
+    function genererEditeur() {
+        const container = document.getElementById('editBody');
+        let html = `
+            <div style="display:flex;gap:10px;padding:4px 0 8px 38px;flex-wrap:wrap;">
+                <span style="width:90px;font-size:0.65rem;color:#ffffff;text-transform:uppercase;font-weight:700;">Ticker</span>
+                <span style="width:160px;font-size:0.65rem;color:#ffffff;text-transform:uppercase;font-weight:700;">Nom (optionnel)</span>
+                <span style="width:80px;font-size:0.65rem;color:#ffffff;text-transform:uppercase;font-weight:700;">Quantité</span>
+                <span style="width:100px;font-size:0.65rem;color:#ffffff;text-transform:uppercase;font-weight:700;">Prix achat $</span>
+            </div>`;
+
+        portefeuille.forEach((pos, i) => {
+            html += `
+                <div class="position-row" id="posRow_${i}">
+                    <div class="pos-num">${i + 1}</div>
+                    <input class="input-ticker" type="text"   value="${pos.ticker}"    placeholder="AAPL"       id="ticker_${i}" />
+                    <input class="input-nom"    type="text"   value="${pos.nom || ''}" placeholder="Apple Inc." id="nom_${i}" />
+                    <input class="input-qty"    type="number" value="${pos.quantite}"  placeholder="10"  min="0" step="1"    id="qty_${i}" />
+                    <input class="input-prix"   type="number" value="${pos.prixAchat}" placeholder="150.00" min="0" step="0.01" id="prix_${i}" />
+                    <button class="btn btn-danger btn-sm" onclick="supprimerLigne(${i})">🗑️</button>
+                </div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function ajouterLigneVide() {
+        portefeuille.push({ ticker: "", nom: "", quantite: 1, prixAchat: 0 });
+        genererEditeur();
+        setTimeout(() => { const el = document.getElementById(`ticker_${portefeuille.length - 1}`); if (el) el.focus(); }, 50);
+    }
+
+    function supprimerLigne(index) {
+        portefeuille.splice(index, 1);
+        genererEditeur();
+        sauvegarderPortefeuille();
+    }
+
+    function sauvegarderPortefeuille() {
+        const nouveau = [];
+        for (let i = 0; i < portefeuille.length; i++) {
+            const ticker   = (document.getElementById(`ticker_${i}`)?.value || "").trim().toUpperCase();
+            const nom      = (document.getElementById(`nom_${i}`)?.value   || "").trim();
+            const quantite = parseFloat(document.getElementById(`qty_${i}`)?.value)   || 0;
+            const prixAchat= parseFloat(document.getElementById(`prix_${i}`)?.value)  || 0;
+            if (!ticker) continue;
+            nouveau.push({ ticker, nom, quantite, prixAchat });
+        }
+        if (nouveau.length === 0) { afficherToast("Ajoutez au moins une position", "error"); return; }
+        portefeuille = nouveau;
+        localStorage.setItem('ptf_portfolio', JSON.stringify(portefeuille));
+        genererEditeur();
+        afficherToast(`${portefeuille.length} position(s) sauvegardée(s) ✓`, "success");
+        if (API_KEY) rafraichirDonnees();
+    }
+
+    async function recupererPrix(ticker) {
+        const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${API_KEY}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const d = await resp.json();
+        if (!d || d.c === 0 || d.c == null) throw new Error(`"${ticker}" introuvable`);
+        return { ticker, prixActuel: d.c, variation: d.d, variationPct: d.dp };
+    }
+
+    async function recupererTousLesPrix() {
+        const resultats = {}, erreurs = [];
+        for (let i = 0; i < portefeuille.length; i++) {
+            const t = portefeuille[i].ticker;
+            try { resultats[t] = await recupererPrix(t); }
+            catch (e) { erreurs.push(`${t}: ${e.message}`); if (donneesMarcheActuelles[t]) resultats[t] = donneesMarcheActuelles[t]; }
+            if (i < portefeuille.length - 1) await new Promise(r => setTimeout(r, 200));
+        }
+        return { resultats, erreurs };
+    }
+
+    async function rafraichirDonnees() {
+        if (!API_KEY) { afficherErreur("Entrez votre clé API Finnhub ci-dessus."); majStatut("error","Clé manquante"); majApiStatus(false); return; }
+        if (portefeuille.length === 0 || estEnChargement) return;
+        estEnChargement = true;
+
+        const btn = document.getElementById('refreshBtn');
+        btn.disabled = true; btn.innerHTML = '⏳ Chargement...';
+        majStatut("loading","Mise à jour..."); masquerErreur();
+
+        try {
+            const { resultats, erreurs } = await recupererTousLesPrix();
+            donneesMarcheActuelles = resultats;
+            mettreAJourTableau();
+            mettreAJourCartes();
+
+            if (erreurs.length > 0 && erreurs.length < portefeuille.length) {
+                afficherErreur(`Partiel : ${erreurs.join(' | ')}`);
+                majStatut("error", `${Object.keys(resultats).length}/${portefeuille.length}`);
+            } else if (erreurs.length === portefeuille.length) {
+                afficherErreur("Échec total. Vérifiez clé API / connexion.");
+                majStatut("error","Erreur"); majApiStatus(false);
+            } else {
+                majStatut("ok","OK"); majApiStatus(true);
+                afficherToast("Données à jour ✓","success");
+            }
+
+            document.getElementById('lastUpdate').textContent = `Dernière MAJ : ${new Date().toLocaleTimeString('fr-FR')}`;
+        } catch(e) {
+            afficherErreur("Erreur : " + e.message); majStatut("error","Erreur");
+        } finally {
+            estEnChargement = false; btn.disabled = false; btn.innerHTML = '🔄 Rafraîchir';
+        }
+    }
+
+    function mettreAJourTableau() {
+        const tbody = document.getElementById('portfolioBody');
+        let html = '', valTotale = 0, coutTotal = 0;
+
+        const lignes = portefeuille.map((pos, i) => {
+            const m    = donneesMarcheActuelles[pos.ticker];
+            const px   = m ? m.prixActuel : null;
+            const cout = pos.prixAchat * pos.quantite;          // ← Capital Investi
+            const val  = px ? px * pos.quantite : 0;
+            const gp   = px ? val - cout : 0;
+            const gpPct= px ? ((px - pos.prixAchat) / pos.prixAchat) * 100 : 0;
+            if (px) valTotale += val;
+            coutTotal += cout;
+            return { ...pos, px, val, cout, gp, gpPct, varPct: m?.variationPct, index: i };
+        });
+
+        lignes.forEach(l => {
+            const couleur = COULEURS[l.index % COULEURS.length];
+            const poids   = valTotale > 0 ? (l.val / valTotale * 100) : 0;
+            const cls     = l.gp > 0 ? 'gain' : l.gp < 0 ? 'loss' : 'neutral';
+            const signe   = l.gp > 0 ? '+' : '';
+            const fleche  = l.gp > 0 ? '▲' : l.gp < 0 ? '▼' : '●';
+
+            html += `
+                <tr style="animation:fadeIn 0.3s ease ${l.index * 0.05}s both">
+                    <td>
+                        <div class="ticker-cell">
+                            <div class="ticker-avatar" style="background:${couleur}">${l.ticker.substring(0,2)}</div>
+                            <div class="ticker-info">
+                                <div class="symbol">${l.ticker}</div>
+                                <div class="name">${l.nom || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-right">${l.quantite}</td>
+                    <td class="text-right">${fmtUSD(l.prixAchat)}</td>
+                    <td class="text-right capital-cell">${fmtUSD(l.cout)}</td>
+                    <td class="text-right">
+                        ${l.px ? fmtUSD(l.px) : '<span style="color:var(--text-muted)">--</span>'}
+                        ${l.varPct != null ? `<br><small style="color:${l.varPct>=0?'var(--gain)':'var(--loss)'}">${l.varPct>=0?'+':''}${l.varPct.toFixed(2)}%</small>` : ''}
+                    </td>
+                    <td class="text-right" style="font-weight:600">${l.px ? fmtUSD(l.val) : '--'}</td>
+                    <td class="text-right"><span class="pnl-badge ${cls}">${fleche} ${signe}${fmtUSD(Math.abs(l.gp))}</span></td>
+                    <td class="text-right"><span class="pnl-badge ${cls}">${signe}${l.gpPct.toFixed(2)}%</span></td>
+                    <td class="text-right">
+                        <div class="weight-bar-container">
+                            <div class="weight-bar"><div class="weight-bar-fill" style="width:${poids}%"></div></div>
+                            <span class="weight-value">${poids.toFixed(1)}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+
+        const gpT    = valTotale - coutTotal;
+        const gpTPct = coutTotal > 0 ? (gpT / coutTotal * 100) : 0;
+        const clsT   = gpT > 0 ? 'gain' : gpT < 0 ? 'loss' : 'neutral';
+        const signeT = gpT > 0 ? '+' : '';
+
+        html += `
+            <tr class="total-row">
+                <td colspan="3" style="font-size:0.95rem">📊 TOTAL</td>
+                <td class="text-right capital-cell" style="font-size:0.95rem">${fmtUSD(coutTotal)}</td>
+                <td></td>
+                <td class="text-right" style="font-size:0.95rem">${fmtUSD(valTotale)}</td>
+                <td class="text-right"><span class="pnl-badge ${clsT}">${signeT}${fmtUSD(Math.abs(gpT))}</span></td>
+                <td class="text-right"><span class="pnl-badge ${clsT}">${signeT}${gpTPct.toFixed(2)}%</span></td>
+                <td class="text-right" style="color:var(--text-muted)">100%</td>
+            </tr>`;
+
+        tbody.innerHTML = html;
+        document.getElementById('positionCount').textContent = portefeuille.length;
+    }
+
+    function mettreAJourCartes() {
+        let valTotale = 0, coutTotal = 0, bestTicker = '', bestPct = -Infinity;
+
+        portefeuille.forEach(pos => {
+            const m   = donneesMarcheActuelles[pos.ticker];
+            const px  = m ? m.prixActuel : null;
+            const val = px ? px * pos.quantite : 0;
+            const cout= pos.prixAchat * pos.quantite;
+            const pct = px ? ((px - pos.prixAchat) / pos.prixAchat) * 100 : 0;
+            valTotale += val;
+            coutTotal += cout;
+            if (pct > bestPct && px) { bestPct = pct; bestTicker = pos.ticker; }
+        });
+
+        const gpT    = valTotale - coutTotal;
+        const gpTPct = coutTotal > 0 ? (gpT / coutTotal * 100) : 0;
+        const cls    = gpT > 0 ? 'gain' : gpT < 0 ? 'loss' : 'neutral';
+        const signe  = gpT > 0 ? '+' : '';
+
+        document.getElementById('totalValue').textContent = fmtUSD(valTotale);
+        document.getElementById('totalValue').className   = `card-value ${cls}`;
+        document.getElementById('totalPositions').textContent = `${portefeuille.length} positions`;
+        document.getElementById('totalCost').textContent  = fmtUSD(coutTotal);
+
+        const elPnl = document.getElementById('totalPnl');
+        elPnl.textContent = `${signe}${fmtUSD(Math.abs(gpT))}`;
+        elPnl.className   = `card-value ${cls}`;
+
+        const elPnlPct = document.getElementById('totalPnlPct');
+        elPnlPct.textContent = `${signe}${gpTPct.toFixed(2)}%`;
+        elPnlPct.className   = `card-sub ${cls}`;
+
+        document.getElementById('bestPerformer').textContent    = bestTicker || '--';
+        document.getElementById('bestPerformerPct').textContent = bestPct !== -Infinity ? `+${bestPct.toFixed(2)}%` : '--';
+    }
+
+    function fmtUSD(n) {
+        return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', minimumFractionDigits:2, maximumFractionDigits:2 }).format(n);
+    }
+
+    function majStatut(type, texte) {
+        const dot = document.getElementById('statusDot');
+        dot.className = 'status-dot' + (type==='error' ? ' error' : type==='loading' ? ' loading' : '');
+        document.getElementById('statusText').textContent = texte;
+    }
+
+    function afficherErreur(msg) { document.getElementById('errorText').textContent = msg; document.getElementById('errorBanner').classList.add('active'); }
+    function masquerErreur()     { document.getElementById('errorBanner').classList.remove('active'); }
+
+    function afficherToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type} active`;
+        setTimeout(() => t.classList.remove('active'), 3000);
+    }
+    </script>
+</body>
+</html>

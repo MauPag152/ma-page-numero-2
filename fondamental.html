@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse Fondamentale Complète - Actions (Finnhub)</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #0a0e17;
+    color: #e0e6ed;
+    min-height: 100vh;
+}
+
+/* ============================================
+   BOUTON ACCUEIL
+   ============================================ */
+.home-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 100%);
+    border-bottom: 1px solid #1a3050;
+}
+
+.home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: #0a1628;
+    color: #b0bec5;
+    text-decoration: none;
+    border: 1px solid #1a3050;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.home-btn:hover {
+    background: rgba(30, 144, 255, 0.1);
+    border-color: #1e90ff;
+    color: #4fc3f7;
+    transform: translateX(-2px);
+    box-shadow: 0 4px 15px rgba(30, 144, 255, 0.15);
+}
+
+.home-btn:active {
+    transform: scale(0.97);
+}
+
+.home-btn .home-arrow {
+    font-size: 14px;
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.home-btn:hover .home-arrow {
+    opacity: 1;
+    transform: translateX(-3px);
+}
+
+.home-breadcrumb {
+    font-size: 12px;
+    color: #5a6a7a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.home-breadcrumb span {
+    color: #4fc3f7;
+    font-weight: 600;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+    background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 50%, #0d1b2a 100%);
+    border-bottom: 2px solid #1e90ff;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.header h1 {
+    font-size: 1.4em;
+    color: #4fc3f7;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.header h1 span {
+    color: #ff9800;
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.search-container input {
+    background: #0a1628;
+    border: 1px solid #1e90ff;
+    color: #e0e6ed;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 1em;
+    width: 340px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.search-container input:focus {
+    border-color: #4fc3f7;
+    box-shadow: 0 0 12px rgba(79, 195, 247, 0.3);
+}
+
+.search-container input::placeholder {
+    color: #5a6a7a;
+}
+
+.btn {
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.5px;
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #26a69a, #00897b);
+}
+
+.btn-add:hover {
+    background: linear-gradient(135deg, #4db6ac, #26a69a);
+    transform: translateY(-1px);
+}
+
+.btn-analyze {
+    background: linear-gradient(135deg, #1e90ff, #0066cc);
+}
+
+.btn-analyze:hover {
+    background: linear-gradient(135deg, #4fc3f7, #1e90ff);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+}
+
+.btn-analyze:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-clear {
+    background: transparent;
+    border: 1px solid #ff5252;
+    color: #ff5252;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-clear:hover {
+    background: #ff5252;
+    color: #fff;
+}
+
+.api-key-section {
+    background: #0d1b2a;
+    border: 1px solid #1a3050;
+    padding: 14px 20px;
+    margin: 15px 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.api-key-section label {
+    color: #4fc3f7;
+    font-weight: 600;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.api-key-section input {
+    background: #0a1628;
+    border: 1px solid #1a3050;
+    color: #e0e6ed;
+    padding: 8px 14px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    width: 360px;
+    outline: none;
+}
+
+.api-key-section input:focus {
+    border-color: #1e90ff;
+}
+
+.api-key-section .hint {
+    color: #5a6a7a;
+    font-size: 0.8em;
+}
+
+.api-key-section .status {
+    font-size: 0.82em;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.status-ok {
+    background: rgba(76,175,80,0.15);
+    color: #66bb6a;
+}
+
+.status-err {
+    background: rgba(244,67,54,0.15);
+    color: #ef5350;
+}
+
+.main-content {
+    padding: 20px 30px;
+    max-width: 1650px;
+    margin: 0 auto;
+}
+
+/* Loading */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10, 14, 23, 0.94);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid #1a3050;
+    border-top: 4px solid #4fc3f7;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #4fc3f7;
+    font-size: 1.05em;
+    text-align: center;
+    max-width: 500px;
+}
+
+.progress-bar-container {
+    width: 320px;
+    height: 6px;
+    background: #1a3050;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #1e90ff, #4fc3f7);
+    width: 0%;
+    transition: width 0.4s;
+    border-radius: 3px;
+}
+
+.log-area {
+    color: #5a6a7a;
+    font-size: 0.78em;
+    max-height: 120px;
+    overflow-y: auto;
+    text-align: left;
+    width: 420px;
+    padding: 8px;
+    background: #0a1020;
+    border-radius: 6px;
+    border: 1px solid #1a3050;
+    font-family: 'Consolas', monospace;
+}
+
+/* Section */
+.section {
+    background: #0d1b2a;
+    border: 1px solid #1a3050;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    overflow: hidden;
+}
+
+.section-header {
+    background: linear-gradient(90deg, #0d2137, #1a3050);
+    padding: 14px 22px;
+    border-bottom: 1px solid #1a3050;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h2 {
+    color: #4fc3f7;
+    font-size: 1.15em;
+    font-weight: 600;
+}
+
+.section-header .num {
+    background: #1e90ff;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.section-body {
+    padding: 20px 22px;
+    overflow-x: auto;
+}
+
+/* Table */
+.ratio-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82em;
+    min-width: 1200px;
+}
+
+.ratio-table thead th {
+    background: #0a1628;
+    color: #4fc3f7;
+    padding: 10px 6px;
+    text-align: center;
+    border: 1px solid #1a3050;
+    font-weight: 600;
+    font-size: 0.88em;
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+}
+
+.ratio-table tbody td {
+    padding: 9px 6px;
+    text-align: center;
+    border: 1px solid #1a3050;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+
+.ratio-table tbody tr:nth-child(even) {
+    background: rgba(13, 27, 42, 0.5);
+}
+
+.ratio-table tbody tr:hover {
+    background: rgba(30, 144, 255, 0.07);
+}
+
+.cell-green {
+    background: rgba(76, 175, 80, 0.13) !important;
+    color: #66bb6a;
+    font-weight: 600;
+}
+
+.cell-orange {
+    background: rgba(255, 152, 0, 0.13) !important;
+    color: #ffa726;
+    font-weight: 600;
+}
+
+.cell-red {
+    background: rgba(244, 67, 54, 0.13) !important;
+    color: #ef5350;
+    font-weight: 600;
+}
+
+.cell-na {
+    color: #5a6a7a;
+    font-style: italic;
+}
+
+.cell-ticker {
+    color: #4fc3f7 !important;
+    font-weight: 700;
+    text-align: left !important;
+    white-space: nowrap;
+    font-size: 1.05em;
+}
+
+.cell-sector {
+    color: #b0bec5 !important;
+    text-align: left !important;
+    font-size: 0.9em;
+}
+
+.cell-score {
+    font-weight: 700;
+    font-size: 1em;
+}
+
+/* Verdict cards */
+.verdict-card {
+    background: #0a1628;
+    border: 1px solid #1a3050;
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-left: 4px solid #1e90ff;
+}
+
+.verdict-card.quality { border-left-color: #4caf50; }
+.verdict-card.neutral { border-left-color: #ff9800; }
+.verdict-card.avoid { border-left-color: #f44336; }
+
+.verdict-card h3 {
+    color: #4fc3f7;
+    font-size: 1.08em;
+    margin-bottom: 10px;
+}
+
+.verdict-card p, .verdict-card ul {
+    color: #b0bec5;
+    line-height: 1.75;
+    font-size: 0.92em;
+}
+
+.verdict-card ul {
+    margin-left: 18px;
+    margin-top: 6px;
+}
+
+.verdict-conclusion {
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: 600;
+    font-size: 0.9em;
+    display: inline-block;
+}
+
+.conclusion-quality {
+    background: rgba(76, 175, 80, 0.14);
+    color: #66bb6a;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.conclusion-neutral {
+    background: rgba(255, 152, 0, 0.14);
+    color: #ffa726;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.conclusion-avoid {
+    background: rgba(244, 67, 54, 0.14);
+    color: #ef5350;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* Ranking */
+.ranking-category { margin-bottom: 16px; }
+.ranking-category h3 {
+    font-size: 1em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ranking-category.cat-a h3 { color: #66bb6a; }
+.ranking-category.cat-b h3 { color: #ffa726; }
+.ranking-category.cat-c h3 { color: #ef5350; }
+
+.ranking-item {
+    padding: 5px 0 5px 24px;
+    color: #b0bec5;
+    font-size: 0.92em;
+    line-height: 1.6;
+}
+
+/* Summary */
+.summary-text {
+    color: #b0bec5;
+    line-height: 1.8;
+    font-size: 0.95em;
+}
+
+.summary-text p { margin-bottom: 12px; }
+.summary-text strong { color: #4fc3f7; }
+
+/* Sector */
+.sector-block {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1a3050;
+}
+
+.sector-block:last-child { border-bottom: none; }
+.sector-block h3 { color: #ff9800; font-size: 1em; margin-bottom: 8px; }
+.sector-block p { color: #b0bec5; font-size: 0.92em; line-height: 1.7; }
+
+/* Criteria Ref */
+.criteria-ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82em;
+    margin-top: 10px;
+}
+
+.criteria-ref-table th {
+    background: #0a1628;
+    color: #4fc3f7;
+    padding: 8px;
+    border: 1px solid #1a3050;
+    text-align: center;
+}
+
+.criteria-ref-table td {
+    padding: 7px 8px;
+    border: 1px solid #1a3050;
+    text-align: center;
+}
+
+.green-ref { color: #66bb6a; }
+.orange-ref { color: #ffa726; }
+.red-ref { color: #ef5350; }
+
+.error-box {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid #f44336;
+    border-radius: 8px;
+    padding: 16px 20px;
+    color: #ef5350;
+    margin: 20px 0;
+    line-height: 1.7;
+}
+
+.info-banner {
+    background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(79, 195, 247, 0.05));
+    border: 1px solid rgba(30, 144, 255, 0.3);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    color: #b0bec5;
+    font-size: 0.9em;
+    line-height: 1.7;
+}
+
+.info-banner strong { color: #4fc3f7; }
+
+.data-note {
+    color: #5a6a7a;
+    font-size: 0.78em;
+    font-style: italic;
+}
+
+.ticker-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 30px;
+    margin-bottom: 10px;
+}
+
+.ticker-chip {
+    background: #1a3050;
+    color: #4fc3f7;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.87em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ticker-chip .remove-chip {
+    cursor: pointer;
+    color: #ef5350;
+    font-size: 1.2em;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.ticker-chip .remove-chip:hover { color: #ff8a80; }
+
+.quick-examples {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding: 0 30px;
+}
+
+.quick-examples span {
+    color: #5a6a7a;
+    font-size: 0.82em;
+}
+
+.quick-example-btn {
+    background: #1a3050;
+    color: #4fc3f7;
+    border: 1px solid #1e3a5f;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-example-btn:hover {
+    background: #1e90ff;
+    color: #fff;
+}
+
+.src-tag {
+    font-size: 0.72em;
+    color: #5a8abf;
+    vertical-align: super;
+    margin-left: 2px;
+}
+
+.debug-section {
+    margin-top: 20px;
+}
+
+.debug-toggle {
+    background: #1a3050;
+    color: #5a6a7a;
+    border: 1px solid #1a3050;
+    padding: 6px 14px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+
+.debug-toggle:hover { color: #4fc3f7; }
+
+.debug-data {
+    display: none;
+    background: #050a14;
+    border: 1px solid #1a3050;
+    border-radius: 6px;
+    padding: 14px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.75em;
+    color: #5a6a7a;
+    max-height: 400px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.debug-data.show { display: block; }
+
+@media (max-width: 768px) {
+    .header {
+        padding: 15px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-container { flex-direction: column; }
+    .search-container input { width: 100%; }
+    .main-content { padding: 15px; }
+    .api-key-section {
+        margin: 10px 15px;
+        flex-direction: column;
+    }
+    .api-key-section input { width: 100%; }
+    .ticker-chips, .quick-examples { padding: 0 15px; }
+    .home-nav { padding: 10px 15px; }
+    .home-breadcrumb { display: none; }
+    .home-btn { padding: 8px 14px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     BOUTON RETOUR ACCUEIL
+     ============================================ -->
+<nav class="home-nav">
+    <a href="index.html" class="home-btn" title="Retour à l'accueil">
+        <span class="home-arrow">←</span>
+        <span>🏠 Accueil</span>
+    </a>
+    <div class="home-breadcrumb">
+        <span>Accueil</span> / Analyse Fondamentale
+    </div>
+</nav>
+
+<!-- ============================================
+     HEADER
+     ============================================ -->
+<div class="header">
+    <h1>📊 ANALYSE FONDAMENTALE <span>COMPLÈTE</span></h1>
+    <div class="search-container">
+        <input type="text" id="tickerInput" placeholder="Ex: AAPL, MSFT, GOOGL ou NASDAQ:AAPL" 
+               onkeypress="if(event.key==='Enter') addTickers()">
+        <button class="btn btn-add" onclick="addTickers()">+ Ajouter</button>
+        <button class="btn btn-analyze" id="btnAnalyze" onclick="startAnalysis()">🔍 Analyser</button>
+        <button class="btn-clear" onclick="clearAll()">✕ Réinitialiser</button>
+    </div>
+</div>
+
+<div class="quick-examples">
+    <span>Exemples :</span>
+    <button class="quick-example-btn" onclick="setExample('AAPL')">AAPL</button>
+    <button class="quick-example-btn" onclick="setExample('MSFT')">MSFT</button>
+    <button class="quick-example-btn" onclick="setExample('GOOGL')">GOOGL</button>
+    <button class="quick-example-btn" onclick="setExample('AMZN')">AMZN</button>
+    <button class="quick-example-btn" onclick="setExample('NVDA')">NVDA</button>
+    <button class="quick-example-btn" onclick="setExample('TSLA')">TSLA</button>
+    <button class="quick-example-btn" onclick="setExample('JPM')">JPM</button>
+    <button class="quick-example-btn" onclick="setExample('META')">META</button>
+    <button class="quick-example-btn" onclick="setMulti()">Multi (5)</button>
+</div>
+
+<div class="api-key-section">
+    <label>🔑 Clé API Finnhub :</label>
+    <input type="password" id="apiKey" placeholder="Votre clé API Finnhub..." onchange="saveApiKey()" oninput="saveApiKey()">
+    <span class="hint">Gratuite sur <a href="https://finnhub.io/register" target="_blank" style="color:#4fc3f7;">finnhub.io</a> — 60 appels/min</span>
+    <span id="apiStatus"></span>
+</div>
+
+<div id="tickerChips" class="ticker-chips"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="info-banner">
+        <strong>📋 Mode d'emploi :</strong><br>
+        1. Obtenez une clé API gratuite sur <a href="https://finnhub.io/register" target="_blank" style="color:#4fc3f7;">finnhub.io</a><br>
+        2. Entrez un ou plusieurs symboles (ex: <strong>AAPL</strong>, <strong>MSFT</strong>) séparés par des virgules<br>
+        3. Cliquez sur <strong>🔍 Analyser</strong> pour lancer l'analyse fondamentale complète avec les 11 critères<br>
+        <span class="data-note">Données en temps réel via Finnhub API (métriques financières, profil, estimations).</span>
+    </div>
+
+    <!-- Criteria Reference -->
+    <div class="section">
+        <div class="section-header">
+            <div class="num">📋</div>
+            <h2>Référentiel des Critères et Seuils</h2>
+        </div>
+        <div class="section-body">
+            <table class="criteria-ref-table">
+                <thead>
+                    <tr>
+                        <th>Critère</th>
+                        <th>Type</th>
+                        <th class="green-ref">🟢 Vert</th>
+                        <th class="orange-ref">🟠 Orange</th>
+                        <th class="red-ref">🔴 Rouge</th>
+                        <th>Commentaire</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>P/E</td><td>Seuil</td><td class="green-ref">≤16</td><td class="orange-ref">16-20</td><td class="red-ref">≥20</td><td>Valorisation</td></tr>
+                    <tr><td>PEG</td><td>Indépendant</td><td class="green-ref">≤1.0</td><td class="orange-ref">1.0-1.5</td><td class="red-ref">≥1.5</td><td>Qualité croissance</td></tr>
+                    <tr><td>ROE moy. 5 ans</td><td>Indépendant</td><td class="green-ref">≥15%</td><td class="orange-ref">10%-15%</td><td class="red-ref">&lt;10%</td><td>Rentabilité capital</td></tr>
+                    <tr><td>Ratio rapide</td><td>Indépendant</td><td class="green-ref">≥1.0</td><td class="orange-ref">0.5-1.0</td><td class="red-ref">&lt;0.5</td><td>Liquidité CT</td></tr>
+                    <tr><td>Dette/Équité</td><td>Indépendant</td><td class="green-ref">≤0.5</td><td class="orange-ref">0.5-1.0</td><td class="red-ref">&gt;1.0</td><td>Endettement</td></tr>
+                    <tr><td>Marge nette</td><td>Score</td><td class="green-ref">≥10%</td><td class="orange-ref">5%-10%</td><td class="red-ref">&lt;5%</td><td>Rentabilité</td></tr>
+                    <tr><td>EV/EBITDA</td><td>Seuil</td><td class="green-ref">≤8</td><td class="orange-ref">8-12</td><td class="red-ref">≥12</td><td>Valorisation entreprise</td></tr>
+                    <tr><td>Couv. intérêts</td><td>Score</td><td class="green-ref">≥5x</td><td class="orange-ref">3x-5x</td><td class="red-ref">&lt;3x</td><td>Remboursement dette</td></tr>
+                    <tr><td>Croissance CA</td><td>Score</td><td class="green-ref">≥10%</td><td class="orange-ref">5%-10%</td><td class="red-ref">&lt;5%</td><td>Dynamique activité</td></tr>
+                    <tr><td>Rendement FCF</td><td>Score</td><td class="green-ref">≥8%</td><td class="orange-ref">4%-8%</td><td class="red-ref">&lt;4%</td><td>Génération cash</td></tr>
+                    <tr><td>Ratio distribution</td><td>Score</td><td class="green-ref">20%-80%</td><td class="orange-ref">&lt;20% ou &gt;80%</td><td class="red-ref">&gt;100%</td><td>Dividende soutenable</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="resultsContainer"></div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Analyse en cours...</div>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="log-area" id="logArea"></div>
+</div>
+
+<script>
+// ============================
+// STATE
+// ============================
+let tickers = [];
+let allResults = {};
+const FINNHUB_BASE = 'https://finnhub.io/api/v1';
+
+// ============================
+// INIT
+// ============================
+document.addEventListener('DOMContentLoaded', () => {
+    const k = localStorage.getItem('finnhub_api_key');
+    if (k) document.getElementById('apiKey').value = k;
+    const t = localStorage.getItem('analysis_tickers');
+    if (t) { tickers = JSON.parse(t); renderChips(); }
+});
+
+function saveApiKey() {
+    const k = document.getElementById('apiKey').value.trim();
+    localStorage.setItem('finnhub_api_key', k);
+}
+
+function getApiKey() {
+    return document.getElementById('apiKey').value.trim();
+}
+
+// ============================
+// TICKER MANAGEMENT
+// ============================
+function extractSymbol(raw) {
+    let s = raw.trim().toUpperCase();
+    if (s.includes(':')) s = s.split(':').pop();
+    return s.replace(/[^A-Z0-9.]/g, '');
+}
+
+function addTickers() {
+    const input = document.getElementById('tickerInput').value;
+    if (!input.trim()) return;
+    const arr = input.split(/[,;\s]+/).map(extractSymbol).filter(s => s.length > 0 && s.length < 10);
+    arr.forEach(s => { if (!tickers.includes(s)) tickers.push(s); });
+    localStorage.setItem('analysis_tickers', JSON.stringify(tickers));
+    document.getElementById('tickerInput').value = '';
+    renderChips();
+}
+
+function removeTicker(t) {
+    tickers = tickers.filter(x => x !== t);
+    localStorage.setItem('analysis_tickers', JSON.stringify(tickers));
+    renderChips();
+}
+
+function renderChips() {
+    document.getElementById('tickerChips').innerHTML = tickers.map(t =>
+        `<div class="ticker-chip">${t}<span class="remove-chip" onclick="removeTicker('${t}')">×</span></div>`
+    ).join('');
+}
+
+function setExample(s) {
+    document.getElementById('tickerInput').value = s;
+    addTickers();
+}
+
+function setMulti() {
+    document.getElementById('tickerInput').value = 'AAPL, MSFT, GOOGL, AMZN, NVDA';
+    addTickers();
+}
+
+function clearAll() {
+    tickers = [];
+    allResults = {};
+    localStorage.removeItem('analysis_tickers');
+    renderChips();
+    document.getElementById('resultsContainer').innerHTML = '';
+}
+
+// ============================
+// LOADING / LOG
+// ============================
+function showLoading(show, text, pct) {
+    const ov = document.getElementById('loadingOverlay');
+    if (show) ov.classList.add('active'); else ov.classList.remove('active');
+    if (text) document.getElementById('loadingText').textContent = text;
+    if (pct !== undefined) document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function log(msg) {
+    const area = document.getElementById('logArea');
+    const ts = new Date().toLocaleTimeString('fr-FR');
+    area.textContent += `[${ts}] ${msg}\n`;
+    area.scrollTop = area.scrollHeight;
+}
+
+// ============================
+// FINNHUB API CALLS
+// ============================
+async function finnhubFetch(endpoint, params = {}) {
+    const key = getApiKey();
+    params.token = key;
+    const qs = new URLSearchParams(params).toString();
+    const url = `${FINNHUB_BASE}${endpoint}?${qs}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`Finnhub ${endpoint} → ${resp.status}`);
+    return resp.json();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function fetchCompanyProfile(symbol) {
+    log(`📡 Profil: ${symbol}`);
+    try {
+        const d = await finnhubFetch('/stock/profile2', { symbol });
+        return d;
+    } catch(e) { log(`⚠️ Profil ${symbol}: ${e.message}`); return {}; }
+}
+
+async function fetchBasicFinancials(symbol) {
+    log(`📡 Métriques: ${symbol}`);
+    try {
+        const d = await finnhubFetch('/stock/metric', { symbol, metric: 'all' });
+        return d;
+    } catch(e) { log(`⚠️ Métriques ${symbol}: ${e.message}`); return {}; }
+}
+
+async function fetchQuote(symbol) {
+    log(`📡 Cours: ${symbol}`);
+    try {
+        const d = await finnhubFetch('/quote', { symbol });
+        return d;
+    } catch(e) { log(`⚠️ Cours ${symbol}: ${e.message}`); return {}; }
+}
+
+async function fetchFinancials(symbol, statement, freq) {
+    log(`📡 ${statement} (${freq}): ${symbol}`);
+    try {
+        const d = await finnhubFetch('/stock/financials-reported', { symbol, freq });
+        return d;
+    } catch(e) { log(`⚠️ Financials ${symbol}: ${e.message}`); return {}; }
+}
+
+// ============================
+// DATA EXTRACTION
+// ============================
+function extractMetrics(profile, metrics, quote) {
+    const m = metrics.metric || {};
+    const s = metrics.series || {};
+    
+    const val = (v) => (v !== undefined && v !== null && v !== '' && !isNaN(v)) ? parseFloat(v) : null;
+    
+    let pe = val(m['peNormalizedAnnual']) || val(m['peTTM']) || val(m['peBasicExclExtraTTM']);
+    let peg = val(m['pegAnnual']) || val(m['pegTTM']);
+    
+    let roe5 = val(m['roaeTTM']) || val(m['roeRfy']) || val(m['roeTTM']);
+    if (s && s.annual && s.annual.roe) {
+        const roeArr = s.annual.roe.slice(0, 5).map(x => x.v).filter(x => x !== null);
+        if (roeArr.length > 0) roe5 = roeArr.reduce((a, b) => a + b, 0) / roeArr.length;
+    }
+    
+    let quickRatio = val(m['quickRatioQuarterly']) || val(m['quickRatioAnnual']);
+    
+    let debtEquity = val(m['totalDebt/totalEquityQuarterly']) || val(m['totalDebt/totalEquityAnnual']) || val(m['longTermDebt/equityQuarterly']);
+    if (debtEquity && debtEquity > 10) debtEquity = debtEquity / 100;
+    
+    let netMargin = val(m['netProfitMarginTTM']) || val(m['netProfitMarginAnnual']) || val(m['netProfitMargin5Y']);
+    let evEbitda = val(m['enterpriseValue/ebitdaTTM']) || val(m['currentEv/freeCashFlowTTM']);
+    
+    let interestCov = null;
+    if (m['interestCoverageAnnual']) interestCov = val(m['interestCoverageAnnual']);
+    if (!interestCov && m['interestCoverageTTM']) interestCov = val(m['interestCoverageTTM']);
+    
+    let revGrowth = val(m['revenueGrowthTTMYoy']) || val(m['revenueGrowth3Y']) || val(m['revenueGrowth5Y']);
+    if (s && s.annual && s.annual.revenue) {
+        const revArr = s.annual.revenue.slice(0, 2).map(x => x.v);
+        if (revArr.length >= 2 && revArr[1] > 0) {
+            revGrowth = ((revArr[0] - revArr[1]) / Math.abs(revArr[1])) * 100;
+        }
+    }
+    
+    let fcfYield = val(m['fcfYieldTTM']) || val(m['freeCashFlowYieldTTM']);
+    if (!fcfYield && m['freeCashFlowPerShareTTM'] && quote && quote.c) {
+        fcfYield = (val(m['freeCashFlowPerShareTTM']) / quote.c) * 100;
+    }
+    let fcfPerShare = val(m['fcfPerShareTTM']) || val(m['freeCashFlowPerShareTTM']);
+    if (!fcfYield && fcfPerShare && quote && quote.c && quote.c > 0) {
+        fcfYield = (fcfPerShare / quote.c) * 100;
+    }
+    
+    let payout = val(m['payoutRatioAnnual']) || val(m['payoutRatioTTM']);
+    if (payout && payout > 5 && payout <= 500) { /* ok */ }
+    else if (payout && payout <= 5) { payout = payout * 100; }
+    
+    let divYield = val(m['dividendYieldIndicatedAnnual']) || val(m['dividendYield5Y']);
+    let marketCap = val(profile.marketCapitalization);
+    let price = quote ? val(quote.c) : null;
+    let high52 = val(m['52WeekHigh']);
+    let low52 = val(m['52WeekLow']);
+    let beta = val(m['beta']);
+    let eps = val(m['epsBasicExclExtraItemsTTM']) || val(m['epsNormalizedAnnual']) || val(m['epsTTM']);
+    let bvps = val(m['bookValuePerShareQuarterly']) || val(m['bookValuePerShareAnnual']);
+    
+    return {
+        symbol: profile.ticker || '',
+        name: profile.name || '',
+        sector: profile.finnhubIndustry || 'N/D',
+        exchange: profile.exchange || '',
+        logo: profile.logo || '',
+        country: profile.country || '',
+        currency: profile.currency || 'USD',
+        marketCap, price, high52, low52, beta, eps, bvps, divYield,
+        pe, peg, roe5, quickRatio, debtEquity, netMargin,
+        evEbitda, interestCov, revGrowth, fcfYield, payout
+    };
+}
+
+// ============================
+// COLOR CODING
+// ============================
+function colorCode(criterion, value) {
+    if (value === null || value === undefined || isNaN(value)) return { cls: 'cell-na', label: 'N/D', color: 'na' };
+    
+    let cls, label, color;
+    
+    switch (criterion) {
+        case 'pe':
+            if (value <= 16) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)} — attractif`; }
+            else if (value < 20) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)} — acceptable`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)} — élevé`; }
+            if (value < 0) { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)} — négatif`; }
+            break;
+        case 'peg':
+            if (value <= 1.0) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(2)} — croiss. qualitative`; }
+            else if (value <= 1.5) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(2)} — correct`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(2)} — surpayé`; }
+            if (value < 0) { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(2)} — négatif`; }
+            break;
+        case 'roe5':
+            if (value >= 15) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)}% — excellent`; }
+            else if (value >= 10) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)}% — correct`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)}% — faible`; }
+            break;
+        case 'quickRatio':
+            if (value >= 1.0) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(2)} — solide`; }
+            else if (value >= 0.5) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(2)} — tendu`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(2)} — critique`; }
+            break;
+        case 'debtEquity':
+            if (value <= 0.5) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(2)} — conservateur`; }
+            else if (value <= 1.0) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(2)} — modéré`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(2)} — élevé`; }
+            break;
+        case 'netMargin':
+            if (value >= 10) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)}% — rentable`; }
+            else if (value >= 5) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)}% — moyen`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)}% — faible`; }
+            break;
+        case 'evEbitda':
+            if (value <= 8) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)} — décote`; }
+            else if (value < 12) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)} — neutre`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)} — cher`; }
+            if (value < 0) { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)} — négatif`; }
+            break;
+        case 'interestCov':
+            if (value >= 5) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)}x — confortable`; }
+            else if (value >= 3) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)}x — correct`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)}x — risque`; }
+            break;
+        case 'revGrowth':
+            if (value >= 10) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)}% — forte`; }
+            else if (value >= 5) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)}% — modérée`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)}% — lente`; }
+            break;
+        case 'fcfYield':
+            if (value >= 8) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(1)}% — attractif`; }
+            else if (value >= 4) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(1)}% — correct`; }
+            else { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(1)}% — faible`; }
+            break;
+        case 'payout':
+            if (value >= 20 && value <= 80) { cls = 'cell-green'; color = 'V'; label = `${value.toFixed(0)}% — soutenable`; }
+            else if (value > 100) { cls = 'cell-red'; color = 'R'; label = `${value.toFixed(0)}% — excessif`; }
+            else if (value > 80 || value < 20) { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(0)}% — atypique`; }
+            else { cls = 'cell-orange'; color = 'O'; label = `${value.toFixed(0)}%`; }
+            if (value === 0) { cls = 'cell-orange'; color = 'O'; label = `0% — pas de div.`; }
+            break;
+        default:
+            cls = 'cell-na'; color = 'na'; label = value.toString();
+    }
+    
+    return { cls, label, color };
+}
+
+function computeScore(data) {
+    const criteria = ['pe', 'peg', 'roe5', 'quickRatio', 'debtEquity', 'netMargin', 'evEbitda', 'interestCov', 'revGrowth', 'fcfYield', 'payout'];
+    let v = 0, o = 0, r = 0, flags = [];
+    
+    criteria.forEach(c => {
+        const cc = colorCode(c, data[c]);
+        if (cc.color === 'V') v++;
+        else if (cc.color === 'O') o++;
+        else if (cc.color === 'R') { r++; flags.push(c); }
+    });
+    
+    return { v, o, r, flags, total: v + o + r };
+}
+
+function scoreClass(score) {
+    if (score.v >= 7) return 'cell-green';
+    if (score.r >= 4) return 'cell-red';
+    return 'cell-orange';
+}
+
+function verdictCategory(score) {
+    if (score.v >= 7 && score.r <= 1) return 'quality';
+    if (score.r >= 4) return 'avoid';
+    return 'neutral';
+}
+
+function flagName(key) {
+    const names = {
+        pe: 'P/E élevé', peg: 'PEG élevé', roe5: 'ROE faible',
+        quickRatio: 'Liquidité faible', debtEquity: 'Endettement élevé',
+        netMargin: 'Marge faible', evEbitda: 'EV/EBITDA élevé',
+        interestCov: 'Couverture faible', revGrowth: 'Croissance lente',
+        fcfYield: 'FCF yield faible', payout: 'Distribution excessive'
+    };
+    return names[key] || key;
+}
+
+// ============================
+// RENDER
+// ============================
+function buildReport(results) {
+    const arr = Object.values(results).filter(r => r.symbol);
+    if (arr.length === 0) return '<div class="error-box">Aucune donnée valide récupérée.</div>';
+    
+    arr.forEach(r => { r._score = computeScore(r); });
+    
+    let html = '';
+    
+    // === SECTION 1: TABLEAU DES RATIOS ===
+    html += `<div class="section">
+        <div class="section-header">
+            <div class="num">1</div>
+            <h2>Tableau des Ratios Clés</h2>
+        </div>
+        <div class="section-body">
+            <table class="ratio-table">
+                <thead><tr>
+                    <th>Ticker</th><th>Secteur</th>
+                    <th>P/E</th><th>PEG</th><th>ROE 5a</th><th>Ratio Rapide</th>
+                    <th>Dette/Éq.</th><th>Marge Nette</th><th>EV/EBITDA</th>
+                    <th>Couv. Int.</th><th>Crois. CA</th><th>Rdt FCF</th>
+                    <th>Payout</th><th>Score Global</th>
+                </tr></thead>
+                <tbody>`;
+    
+    const criteria = ['pe', 'peg', 'roe5', 'quickRatio', 'debtEquity', 'netMargin', 'evEbitda', 'interestCov', 'revGrowth', 'fcfYield', 'payout'];
+    
+    arr.forEach(r => {
+        html += `<tr>`;
+        html += `<td class="cell-ticker">${r.symbol}</td>`;
+        html += `<td class="cell-sector">${r.sector}</td>`;
+        
+        criteria.forEach(c => {
+            const cc = colorCode(c, r[c]);
+            html += `<td class="${cc.cls}">${cc.label}<span class="src-tag">[Finnhub]</span></td>`;
+        });
+        
+        const s = r._score;
+        const sCls = scoreClass(s);
+        html += `<td class="cell-score ${sCls}">${s.v}V/${s.o}O/${s.r}R</td>`;
+        html += `</tr>`;
+    });
+    
+    html += `</tbody></table>
+        <p class="data-note" style="margin-top:12px;">Sources : Finnhub API — Basic Financials (TTM/Annual). Données vérifiables sur finnhub.io. Dernière mise à jour temps réel.</p>
+        </div></div>`;
+    
+    // === SECTION 2: ANALYSE PAR SECTEUR ===
+    const sectors = {};
+    arr.forEach(r => {
+        const sec = r.sector || 'Autre';
+        if (!sectors[sec]) sectors[sec] = [];
+        sectors[sec].push(r);
+    });
+    
+    html += `<div class="section">
+        <div class="section-header">
+            <div class="num">2</div>
+            <h2>Analyse par Secteur</h2>
+        </div>
+        <div class="section-body">`;
+    
+    Object.entries(sectors).forEach(([sec, stocks]) => {
+        html += `<div class="sector-block">`;
+        html += `<h3>🏭 ${sec}</h3>`;
+        
+        const tks = stocks.map(s => s.symbol).join(', ');
+        const avgPE = stocks.filter(s => s.pe).reduce((a, s) => a + s.pe, 0) / (stocks.filter(s => s.pe).length || 1);
+        const avgMargin = stocks.filter(s => s.netMargin).reduce((a, s) => a + s.netMargin, 0) / (stocks.filter(s => s.netMargin).length || 1);
+        
+        html += `<p><strong>Titres analysés :</strong> ${tks}. `;
+        html += `Valorisation moyenne du groupe : P/E ~${avgPE.toFixed(1)}, marge nette moyenne ~${avgMargin.toFixed(1)}%. `;
+        
+        const sorted = [...stocks].sort((a, b) => b._score.v - a._score.v);
+        if (sorted.length > 1) {
+            html += `<strong>${sorted[0].symbol}</strong> affiche le meilleur profil fondamental (${sorted[0]._score.v}V). `;
+        }
+        
+        const highDebt = stocks.filter(s => s.debtEquity && s.debtEquity > 1.0);
+        if (highDebt.length) html += `⚠️ Endettement élevé : ${highDebt.map(s => s.symbol).join(', ')}. `;
+        
+        const lowGrowth = stocks.filter(s => s.revGrowth !== null && s.revGrowth < 5);
+        if (lowGrowth.length) html += `⚠️ Croissance lente : ${lowGrowth.map(s => s.symbol).join(', ')}. `;
+        
+        html += `</p></div>`;
+    });
+    
+    html += `</div></div>`;
+    
+    // === SECTION 3: VERDICT INDIVIDUEL ===
+    html += `<div class="section">
+        <div class="section-header">
+            <div class="num">3</div>
+            <h2>Verdict Individuel</h2>
+        </div>
+        <div class="section-body">`;
+    
+    arr.forEach(r => {
+        const s = r._score;
+        const cat = verdictCategory(s);
+        const catEmoji = cat === 'quality' ? '🟢' : (cat === 'avoid' ? '🔴' : '🟠');
+        
+        html += `<div class="verdict-card ${cat}">`;
+        html += `<h3>${catEmoji} ${r.symbol} — ${r.name || 'N/D'}</h3>`;
+        
+        html += `<p>`;
+        html += `<strong>✅ Qualité fondamentale :</strong> `;
+        if (r.roe5 !== null) html += `ROE ~${r.roe5.toFixed(1)}%`;
+        if (r.netMargin !== null) html += `, marge nette ${r.netMargin.toFixed(1)}%`;
+        if (r.quickRatio !== null) html += `, ratio rapide ${r.quickRatio.toFixed(2)}`;
+        if (r.debtEquity !== null) html += `, dette/équité ${r.debtEquity.toFixed(2)}`;
+        if (r.interestCov !== null) html += `, couverture intérêts ${r.interestCov.toFixed(1)}x`;
+        html += `. `;
+        
+        html += `<br><strong>✅ Valorisation :</strong> `;
+        if (r.pe !== null) html += `P/E ${r.pe.toFixed(1)}`;
+        if (r.peg !== null) html += `, PEG ${r.peg.toFixed(2)}`;
+        if (r.evEbitda !== null) html += `, EV/EBITDA ${r.evEbitda.toFixed(1)}`;
+        html += `. `;
+        
+        const greens = [];
+        const criteria2 = ['pe', 'peg', 'roe5', 'quickRatio', 'debtEquity', 'netMargin', 'evEbitda', 'interestCov', 'revGrowth', 'fcfYield', 'payout'];
+        criteria2.forEach(c => {
+            const cc = colorCode(c, r[c]);
+            if (cc.color === 'V') greens.push(flagName(c).replace(' élevé','').replace(' faible','').replace('Distribution excessive','Payout'));
+        });
+        if (greens.length) html += `<br><strong>✅ Points forts :</strong> ${greens.slice(0, 5).join(', ')}. `;
+        
+        if (s.flags.length > 0) {
+            html += `<br><strong>⚠️ Points de vigilance :</strong> ${s.flags.map(flagName).join(', ')}. `;
+        }
+        html += `</p>`;
+        
+        let concLabel, concClass;
+        if (cat === 'quality') { concLabel = 'Profil qualité attractive'; concClass = 'conclusion-quality'; }
+        else if (cat === 'avoid') { concLabel = 'Spéculatif / risqué'; concClass = 'conclusion-avoid'; }
+        else { concLabel = 'Correct sans marge de sécurité'; concClass = 'conclusion-neutral'; }
+        
+        html += `<div class="verdict-conclusion ${concClass}">
+            ${concLabel} — Score : ${s.v}/11 critères Vert${s.flags.length ? ' — 🚩 ' + s.flags.map(flagName).join(', ') : ''}
+        </div>`;
+        
+        html += `</div>`;
+    });
+    
+    html += `</div></div>`;
+    
+    // === SECTION 4: CLASSEMENT GLOBAL ===
+    const catA = arr.filter(r => verdictCategory(r._score) === 'quality').sort((a, b) => b._score.v - a._score.v);
+    const catB = arr.filter(r => verdictCategory(r._score) === 'neutral').sort((a, b) => b._score.v - a._score.v);
+    const catC = arr.filter(r => verdictCategory(r._score) === 'avoid').sort((a, b) => b._score.v - a._score.v);
+    
+    html += `<div class="section">
+        <div class="section-header">
+            <div class="num">4</div>
+            <h2>Classement Global</h2>
+        </div>
+        <div class="section-body">`;
+    
+    if (catA.length) {
+        html += `<div class="ranking-category cat-a"><h3>🟢 A. QUALITÉ — À PRIVILÉGIER</h3>`;
+        catA.forEach(r => {
+            html += `<div class="ranking-item">• <strong>${r.symbol}</strong> (${r._score.v}V/${r._score.o}O/${r._score.r}R) : `;
+            html += `${r.name || ''} — secteur ${r.sector}. `;
+            if (r.pe) html += `P/E ${r.pe.toFixed(1)}, `;
+            if (r.roe5) html += `ROE ${r.roe5.toFixed(1)}%, `;
+            if (r.netMargin) html += `marge ${r.netMargin.toFixed(1)}%.`;
+            html += `</div>`;
+        });
+        html += `</div>`;
+    }
+    
+    if (catB.length) {
+        html += `<div class="ranking-category cat-b"><h3>🟠 B. NEUTRE — À SURVEILLER</h3>`;
+        catB.forEach(r => {
+            html += `<div class="ranking-item">• <strong>${r.symbol}</strong> (${r._score.v}V/${r._score.o}O/${r._score.r}R) : `;
+            html += `${r.name || ''} — ${r._score.flags.length ? 'vigilance sur ' + r._score.flags.map(flagName).join(', ') : 'profil mixte'}.`;
+            html += `</div>`;
+        });
+        html += `</div>`;
+    }
+    
+    if (catC.length) {
+        html += `<div class="ranking-category cat-c"><h3>🔴 C. ÉVITER — RISQUE ÉLEVÉ</h3>`;
+        catC.forEach(r => {
+            html += `<div class="ranking-item">• <strong>${r.symbol}</strong> (${r._score.v}V/${r._score.o}O/${r._score.r}R) : `;
+            html += `${r.name || ''} — ${r._score.flags.map(flagName).join(', ')}.`;
+            html += `</div>`;
+        });
+        html += `</div>`;
+    }
+    
+    html += `</div></div>`;
+    
+    // === SECTION 5: RÉSUMÉ FINAL ===
+    html += `<div class="section">
+        <div class="section-header">
+            <div class="num">5</div>
+            <h2>Résumé Final</h2>
+        </div>
+        <div class="section-body">
+            <div class="summary-text">`;
+    
+    html += `<p><strong>1. Actions recommandées :</strong> `;
+    if (catA.length) {
+        html += `${catA.map(r => r.symbol).join(', ')} ${catA.length > 1 ? 'présentent' : 'présente'} le meilleur profil fondamental avec une majorité de critères au vert. `;
+        html += `Ces titres combinent valorisation raisonnable, rentabilité solide et bilan sain.`;
+    } else {
+        html += `Aucun titre ne se démarque avec un profil nettement « qualité ». Prudence recommandée.`;
+    }
+    html += `</p>`;
+    
+    html += `<p><strong>2. Risque global :</strong> `;
+    const avgR = arr.reduce((a, r) => a + r._score.r, 0) / arr.length;
+    if (avgR >= 3) html += `Le panier présente un niveau de risque élevé (moyenne ${avgR.toFixed(1)} drapeaux rouges/titre). `;
+    else if (avgR >= 1.5) html += `Risque modéré sur l'ensemble du panier (moyenne ${avgR.toFixed(1)} drapeaux rouges/titre). `;
+    else html += `Profil de risque maîtrisé (moyenne ${avgR.toFixed(1)} drapeaux rouges/titre). `;
+    
+    const highPE = arr.filter(r => r.pe && r.pe > 20);
+    if (highPE.length) html += `Attention aux valorisations élevées (${highPE.map(r => r.symbol).join(', ')}). `;
+    html += `</p>`;
+    
+    html += `<p><strong>3. Logique d'allocation :</strong> `;
+    if (catA.length) html += `Surpondérer les titres catégorie A (${catA.map(r => r.symbol).join(', ')}). `;
+    if (catB.length) html += `Position modérée sur catégorie B (${catB.map(r => r.symbol).join(', ')}). `;
+    if (catC.length) html += `Éviter ou sous-pondérer catégorie C (${catC.map(r => r.symbol).join(', ')}). `;
+    html += `Diversifier par secteur et ajuster selon la tolérance au risque individuelle.</p>`;
+    
+    html += `</div></div></div>`;
+    
+    // === DEBUG DATA ===
+    html += `<div class="debug-section">
+        <button class="debug-toggle" onclick="document.getElementById('debugData').classList.toggle('show')">
+            📋 Afficher/masquer les données brutes (debug)
+        </button>
+        <pre class="debug-data" id="debugData">${JSON.stringify(results, null, 2)}</pre>
+    </div>`;
+    
+    return html;
+}
+
+// ============================
+// MAIN ANALYSIS
+// ============================
+async function startAnalysis() {
+    if (tickers.length === 0) {
+        alert('Veuillez ajouter au moins un ticker.');
+        return;
+    }
+    
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        alert('Veuillez entrer votre clé API Finnhub.\nObtenez-en une gratuitement sur finnhub.io');
+        return;
+    }
+    
+    const btn = document.getElementById('btnAnalyze');
+    btn.disabled = true;
+    document.getElementById('logArea').textContent = '';
+    allResults = {};
+    
+    const total = tickers.length;
+    const delayMs = total > 10 ? 1200 : (total > 5 ? 800 : 500);
+    
+    showLoading(true, `🔍 Analyse de ${total} action(s) via Finnhub API...`, 5);
+    log(`Démarrage de l'analyse pour ${total} ticker(s): ${tickers.join(', ')}`);
+    
+    try {
+        showLoading(true, '🔐 Vérification de la clé API...', 8);
+        log('Vérification de la clé API...');
+        try {
+            const test = await finnhubFetch('/stock/profile2', { symbol: 'AAPL' });
+            if (!test || !test.ticker) {
+                throw new Error('Clé API invalide ou limite atteinte');
+            }
+            log('✅ Clé API valide');
+            document.getElementById('apiStatus').innerHTML = '<span class="status status-ok">✓ Connecté</span>';
+        } catch (e) {
+            document.getElementById('apiStatus').innerHTML = '<span class="status status-err">✗ Erreur</span>';
+            throw new Error(`Vérification API échouée: ${e.message}. Vérifiez votre clé sur finnhub.io`);
+        }
+        
+        for (let i = 0; i < tickers.length; i++) {
+            const sym = tickers[i];
+            const pct = 10 + Math.round((i / total) * 80);
+            showLoading(true, `📊 Analyse ${i + 1}/${total} : ${sym}...`, pct);
+            
+            try {
+                const profile = await fetchCompanyProfile(sym);
+                await sleep(delayMs);
+                
+                const metrics = await fetchBasicFinancials(sym);
+                await sleep(delayMs);
+                
+                const quote = await fetchQuote(sym);
+                await sleep(delayMs);
+                
+                const data = extractMetrics(profile, metrics, quote);
+                data.symbol = sym;
+                
+                if (!data.name && profile.name) data.name = profile.name;
+                if (!data.name) data.name = sym;
+                
+                allResults[sym] = data;
+                
+                log(`✅ ${sym}: P/E=${data.pe || 'N/D'}, ROE=${data.roe5 || 'N/D'}%, Marge=${data.netMargin || 'N/D'}%`);
+                
+            } catch (e) {
+                log(`❌ ${sym}: ${e.message}`);
+                allResults[sym] = { symbol: sym, name: sym, sector: 'Erreur', pe: null, peg: null, roe5: null, quickRatio: null, debtEquity: null, netMargin: null, evEbitda: null, interestCov: null, revGrowth: null, fcfYield: null, payout: null };
+            }
+        }
+        
+        showLoading(true, '📝 Génération du rapport...', 92);
+        log('Génération du rapport complet...');
+        
+        await sleep(300);
+        
+        const reportHTML = buildReport(allResults);
+        
+        const ts = new Date().toLocaleString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="info-banner">
+                <strong>📊 Rapport d'Analyse Fondamentale</strong> — Généré le ${ts}<br>
+                <strong>Tickers :</strong> ${tickers.join(', ')}<br>
+                <strong>Source :</strong> Finnhub API (données TTM / dernier exercice)<br>
+                <span class="data-note">⚠️ Les données proviennent exclusivement de l'API Finnhub. Certains ratios peuvent être indisponibles (N/D) 
+                selon la couverture. Vérifiez sur StockAnalysis, Yahoo Finance ou GuruFocus avant toute décision.</span>
+            </div>
+            ${reportHTML}
+        `;
+        
+        showLoading(true, '✅ Rapport terminé !', 100);
+        log('✅ Rapport généré avec succès.');
+        await sleep(800);
+        showLoading(false);
+        
+        document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+    } catch (error) {
+        showLoading(false);
+        log(`❌ ERREUR FATALE: ${error.message}`);
+        document.getElementById('resultsContainer').innerHTML = `
+            <div class="error-box">
+                <strong>❌ Erreur lors de l'analyse :</strong><br><br>
+                ${error.message}<br><br>
+                <strong>Solutions :</strong><br>
+                • Vérifiez votre clé API Finnhub sur <a href="https://finnhub.io/dashboard" target="_blank" style="color:#4fc3f7;">finnhub.io/dashboard</a><br>
+                • La clé gratuite permet 60 appels/minute — réduisez le nombre de tickers si nécessaire<br>
+                • Vérifiez que les symboles sont valides (format US : AAPL, MSFT, pas de préfixe)<br>
+                • Vérifiez votre connexion internet
+            </div>
+        `;
+    }
+    
+    btn.disabled = false;
+}
+</script>
+
+</body>
+</html>

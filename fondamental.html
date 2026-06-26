@@ -71,21 +71,26 @@
             border-color: var(--primary);
             outline: none;
         }
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            align-self: flex-end;
+        }
         button {
             padding: 11px 24px;
             font-size: 15px;
-            background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            align-self: flex-end;
             transition: background 0.2s;
         }
-        button:hover {
-            background-color: #2563eb;
-        }
+        .btn-primary { background-color: var(--primary); }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-success { background-color: var(--vert); }
+        .btn-success:hover { background-color: #059669; }
+        
         .main-layout {
             display: grid;
             grid-template-columns: 1fr;
@@ -169,7 +174,6 @@
         p { color: #cbd5e1; }
         small { color: var(--text-secondary); }
         
-        /* Animation de chargement */
         .loading-spy {
             display: none;
             color: var(--orange);
@@ -187,24 +191,29 @@
     <h1>Analyse Fondamentale IA & Personnalisable (2026)</h1>
     <p style="margin-top:0; color: var(--text-secondary);">Propulsé par Google Gemini 1.5 & Widgets TradingView</p>
     
+    <!-- 1. PANNEAU DE CONFIGURATION DES TICKERS & CLÉ API -->
     <div class="config-panel">
         <div class="input-row">
             <div class="input-group" style="flex: 1.5;">
                 <label for="apiKeyInput">🔑 Clé API Gemini (Google AI Studio) :</label>
-                <input type="password" id="apiKeyInput" placeholder="AIzaSy..." onchange="saveApiKey()">
+                <input type="password" id="apiKeyInput" placeholder="Collez votre clé AIzaSy... ici">
+                <button class="btn-success" onclick="forceSaveApiKey()" style="padding: 5px 10px; font-size: 12px; margin-top: 5px; align-self: flex-start;">💾 Enregistrer la clé</button>
             </div>
             <div class="input-group" style="flex: 2;">
                 <label for="tickersInput">⚙️ Liste des Tickers à analyser :</label>
                 <input type="text" id="tickersInput" value="NASDAQ:NVDA, NASDAQ:AAPL, NASDAQ:GOOG, NASDAQ:MSFT, NASDAQ:AMZN">
             </div>
-            <button onclick="generateAIAnalysis()">Lancer l'Analyse IA</button>
+            <div class="btn-container">
+                <button class="btn-primary" onclick="generateAIAnalysis()">Lancer l'Analyse IA</button>
+            </div>
         </div>
-        <small>Votre clé API est stockée localement dans votre propre navigateur pour des raisons de sécurité absolue.</small>
+        <small id="keyStatus">Statut de la clé : Non enregistrée.</small>
     </div>
 
     <div id="loadingMessage" class="loading-spy">⏳ Collecte des données financières et génération des rapports par Gemini en cours (généralement 5 à 10 secondes)...</div>
 
     <div class="main-layout">
+        <!-- COLONNE GAUCHE -->
         <div>
             <div class="card">
                 <h3 style="margin-top: 0; color: #ffffff;">1. TABLEAU COMPARATIF DES RATIOS CLÉS</h3>
@@ -221,7 +230,7 @@
                             </tr>
                         </thead>
                         <tbody id="ratiosTableBody">
-                            <tr><td colspan="6" style="text-align:center; color:var(--text-secondary);">Entrez votre clé API et cliquez sur le bouton pour générer les données réelles.</td></tr>
+                            <tr><td colspan="6" style="text-align:center; color:var(--text-secondary);">Entrez votre clé API, enregistrez-la, puis lancez l'analyse.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -235,11 +244,11 @@
             </div>
         </div>
 
+        <!-- COLONNE DROITE -->
         <div>
             <div class="card" style="position: sticky; top: 20px; padding: 15px;">
                 <h4 style="margin-top: 0; margin-bottom: 10px; color: #ffffff;">📊 Vérification Graphique En Direct</h4>
-                <div class="tabs" id="tickerTabs">
-                    </div>
+                <div class="tabs" id="tickerTabs"></div>
                 <div id="tv_chart_container" style="height: 350px; margin-bottom: 15px;"></div>
                 <div id="tv_financials_container"></div>
             </div>
@@ -250,19 +259,28 @@
 <script type="module">
     import { GoogleGenAI } from "https://esm.run/@google/generative-ai";
 
-    // Charger la clé API au démarrage si elle existe déjà dans le stockage du navigateur
+    // Chargement initial au démarrage
     window.addEventListener('DOMContentLoaded', () => {
         const savedKey = localStorage.getItem('gemini_api_key');
         if (savedKey) {
             document.getElementById('apiKeyInput').value = savedKey;
+            document.getElementById('keyStatus').innerHTML = "🟢 Clé API chargée avec succès depuis la mémoire locale.";
+            document.getElementById('keyStatus').style.color = "#10b981";
         }
         setupInitialTabs();
     });
 
-    // Sauvegarde automatique de la clé
-    window.saveApiKey = function() {
+    // Fonction de sauvegarde forcée au clic sur le bouton vert
+    window.forceSaveApiKey = function() {
         const key = document.getElementById('apiKeyInput').value.trim();
-        localStorage.setItem('gemini_api_key', key);
+        if(key) {
+            localStorage.setItem('gemini_api_key', key);
+            document.getElementById('keyStatus').innerHTML = "✅ Clé enregistrée dans le navigateur !";
+            document.getElementById('keyStatus').style.color = "#10b981";
+            alert("Clé sauvegardée avec succès !");
+        } else {
+            alert("Le champ de la clé est vide.");
+        }
     };
 
     function parseTickers() {
@@ -282,13 +300,17 @@
         if(fullTickers[0]) loadTradingViewChart(fullTickers[0]);
     }
 
-    // Fonction Principale de Connexion à Gemini
     window.generateAIAnalysis = async function() {
-        const apiKey = document.getElementById('apiKeyInput').value.trim();
+        // Tente de récupérer depuis le champ ou depuis la mémoire
+        let apiKey = document.getElementById('apiKeyInput').value.trim();
+        if(!apiKey) {
+            apiKey = localStorage.getItem('gemini_api_key');
+        }
+
         const fullTickers = parseTickers();
 
         if (!apiKey) {
-            alert("Veuillez saisir votre clé API Gemini avant de continuer.");
+            alert("Erreur : Aucune clé API trouvée. Collez votre clé et cliquez sur 'Enregistrer la clé' d'abord.");
             return;
         }
         if (fullTickers.length === 0) return;
@@ -297,22 +319,20 @@
         setupInitialTabs();
 
         try {
-            // Initialisation du modèle d'IA de Google Studio
             const ai = new GoogleGenAI({ apiKey: apiKey });
             const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-            // Prompt structuré forçant l'IA à renvoyer du JSON strict calqué sur vos règles de 2026
             const prompt = `
-                Tu es un expert financier. Réalise l'analyse fondamentale de ces tickers pour l'année 2026 : ${fullTickers.join(', ')}.
-                Utilise tes connaissances financières TTM et 2025/2026.
+                Tu es un expert financier mondial en 2026. Réalise l'analyse fondamentale de ces tickers pour l'année courante : ${fullTickers.join(', ')}.
+                Utilise tes connaissances financières TTM et récentes de l'exercice en cours.
                 
-                Pour chaque ticker, tu DOIS évaluer ces critères selon ces seuils :
+                Pour chaque ticker, évalue ces critères selon ces seuils stricts :
                 - P/E : Vert si <=16, Orange si 16-20, Rouge si >=20
                 - PEG : Vert si <=1.0, Orange si 1.0-1.5, Rouge si >=1.5
                 - Quick Ratio : Vert si >=1.0, Orange si 0.5-1.0, Rouge si <0.5
                 - Marge Nette : Vert si >=10%, Orange si 5%-10%, Rouge si <5%
 
-                Renvoie UNIQUEMENT un tableau JSON valide au format exact suivant sans fioritures, sans markdown (pas de bloc \`\`\`json) :
+                Renvoie UNIQUEMENT un tableau JSON valide au format exact suivant sans fioritures, sans markdown (pas de bloc de code, pas de texte avant ou après) :
                 [
                   {
                     "ticker": "NOM_TICKER",
@@ -321,8 +341,8 @@
                     "quick": "valeur (V, O ou R)",
                     "margin": "valeur (V, O ou R)",
                     "score": "XV/XO/XR",
-                    "verdict": "Paragraphe de 3-4 phrases analysant la qualité des fondamentaux et de la profitabilité.",
-                    "conclusion": "Profil qualité attractive" ou "Correct sans marge sécurité"
+                    "verdict": "Paragraphe de 3-4 sentences analysant la profitabilité et la structure.",
+                    "conclusion": "Profil qualité attractive"
                   }
                 ]
             `;
@@ -330,11 +350,9 @@
             const result = await model.generateContent(prompt);
             const responseText = result.response.text();
             
-            // Nettoyage au cas où le modèle inclut des balises de code markdown
             const cleanJsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
             const dataArray = JSON.parse(cleanJsonString);
 
-            // Remplissage du tableau HTML de gauche
             const tbody = document.getElementById('ratiosTableBody');
             tbody.innerHTML = '';
             const verdictDiv = document.getElementById('dynamicVerdicts');
@@ -361,7 +379,7 @@
                 verdictDiv.innerHTML += `
                     <div style="margin-bottom: 25px;">
                         <div class="ticker-headline">${data.ticker}</div>
-                        <p><strong>Analyse :</strong> ${data.verdict} [Données compilées via Gemini AI API, TTM 2026].</p>
+                        <p><strong>Analyse :</strong> ${data.verdict} [Généré via Gemini AI API, TTM 2026].</p>
                         <p>👉 <strong>CONCLUSION :</strong> <span style="font-weight:bold; color:#60a5fa;">${data.conclusion}</span> (Score global: ${data.score}).</p>
                         <hr style="border: 0; border-top: 1px dashed var(--border-color);">
                     </div>
@@ -370,7 +388,7 @@
 
         } catch (error) {
             console.error(error);
-            alert("Erreur lors de la génération par l'IA. Vérifiez votre clé API ou la structure de vos Tickers.");
+            alert("Erreur lors de l'appel à l'IA. Vérifie la validité de ta clé API Gemini.");
         } finally {
             document.getElementById('loadingMessage').style.display = 'none';
         }
@@ -378,7 +396,6 @@
 </script>
 
 <script type="text/javascript">
-    // Fonctions globales pour gérer les switchs de graphiques TradingView
     function switchLiveWidget(fullTicker, element) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
